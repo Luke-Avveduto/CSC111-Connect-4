@@ -140,6 +140,17 @@ class DecisionTree:
             self._subtrees.append(new_subtree)
             self.update_eval()  # This is needed as a new subtree has been added
 
+    def get_best_move(self) -> int:
+        """Returns the the move of the subtree with the highest eval value.
+        Preconditions:
+            - self._subtrees != []
+        """
+        best_subtree = self._subtrees[0]
+        for subtree in self._subtrees:
+            if subtree._eval > best_subtree._eval:
+                best_subtree = subtree
+        return best_subtree._move
+
 
 def build_from_file(file_name: str) -> DecisionTree:
     """Creates a decision tree from a csv file in the correct format.
