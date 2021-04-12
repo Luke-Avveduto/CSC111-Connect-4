@@ -6,6 +6,7 @@ import random
 
 class Player:
     """An abstract class representing a Connect 4 player"""
+    is_human: bool
 
     def make_move(self, game: Connect4Game) -> int:
         """Make a move in the current game"""
@@ -14,6 +15,9 @@ class Player:
 
 class HumanPlayer(Player):
     """A Connect 4 player that requires an input"""
+
+    def __init__(self):
+        self.is_human = True
 
     def make_move(self, game: Connect4Game) -> int:
         """Make a move in the current game"""

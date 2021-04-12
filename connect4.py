@@ -67,10 +67,10 @@ class Connect4Game:
         new_slot = self._update_board(move)
         self._move_sequence.append(move)
 
+        self._recalculate_valid_moves()
         win = self._check_winner(new_slot)
         self._win_state = win
         self._is_red_active = not self._is_red_active
-        self._recalculate_valid_moves()
 
     def _update_board(self, move: int) -> tuple[int, int]:
         """Update the gameboard by the new move"""
@@ -88,6 +88,7 @@ class Connect4Game:
     def get_winner(self) -> Optional[int]:
         """Returns the winner of the game
 
+        If the game is a tie, return 0
         If red has won the game, return 1
         If yellow has won the game, return 2
         If the game does not have a winner yet, return None
@@ -108,6 +109,7 @@ class Connect4Game:
     def _check_winner(self, new_slot: tuple[int, int]) -> Optional[int]:
         """Checks whether the current game state has a winner
 
+        If the game state is a tie, return 0
         If the game state represents a win for red, return 1
         If the game state represents a win for yellow, return 2
         If the game state does not have a winner, return None
@@ -190,5 +192,8 @@ class Connect4Game:
                 is_in_a_row = False
             col_index, row_index = col_index - 1, row_index + 1
 
-        return None
+        if len(self._valid_moves) == 0:
+            return 0
+        else:
+            return None
 
