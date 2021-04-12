@@ -1,8 +1,9 @@
 from connect4 import Connect4Game
-from players import Player, HumanPlayer
+from players import Player, HumanPlayer, AIPlayerBasic, RandomPlayer
+from decision_tree import DecisionTree, write_to_file
 
 
-def run_game(red: Player, yellow: Player, text: bool = False) -> list[int]:
+def run_game(red: Player, yellow: Player, text: bool = False) -> (list[int], bool):
     """Run a Connect 4 game between the two players"""
     game = Connect4Game()
 
@@ -33,8 +34,37 @@ def run_game(red: Player, yellow: Player, text: bool = False) -> list[int]:
 
     # for move in game.get_move_sequence():
     #     print(move, end=' ')
-    return game.get_move_sequence()
+    return game.get_move_sequence(), game.get_winner() == 1
 
 
-def run_n_games(n: int, red: Player, yellow: Player, text: bool = False) -> None:
-    i
+def train(learning_curve: list[float], output_file: str = 'data/saved_trees/AIBasic') -> None:
+    results = []
+    d_tree = DecisionTree(move=-1, turn='yellow', subtrees=[])
+    random_player = RandomPlayer()
+    for t in learning_curve:
+        ai = AIPlayerBasic(d_tree, t)
+        moves_played, ai_win = run_game(ai, random_player)
+        if ai_win:
+            moves_played.append(1)
+        else:
+            moves_played.append(0)
+
+        d_tree.add_game(moves_played)
+
+        results.append(ai_win)
+
+    write_to_file(d_tree, output_file)
+
+    total_win_percent = len([1 for result in results if result])/len(results)
+
+    recent_wins = 0
+    if len(results) > 100:
+        flipped_results = results[::-1]
+        for i in range(0, 100):
+            if flipped_results[i]:
+                recent_wins += 1
+
+    recent_win_percent = recent_wins/100
+
+    print('Recent Win Percentage:', recent_win_percent)
+    print('Total Win Percentage:', total_win_percent)
