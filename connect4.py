@@ -18,6 +18,7 @@ import tkinter
 BOARD_ROW = 6
 BOARD_COLUMN = 7
 
+
 class Connect4Game:
     """A class representing a state of a game of Connect 4"""
     _board: list[list[int]]
@@ -191,57 +192,3 @@ class Connect4Game:
 
         return None
 
-
-class Player:
-    """An abstract class representing a Connect 4 player"""
-
-    def make_move(self, game: Connect4Game) -> int:
-        """Make a move in the current game"""
-        raise NotImplementedError
-
-
-class HumanPlayer:
-    """A Connect 4 player that requires an input"""
-
-    def make_move(self, game: Connect4Game) -> int:
-        """Make a move in the current game"""
-        move = input()
-        move = int(move)
-
-        while move not in game.get_valid_moves():
-            print("That is not a valid move")
-            move = input()
-            move = int(move)
-
-        return move
-
-
-def run_game(red: Player, yellow: Player):
-    """Run a Connect 4 game between the two players"""
-    game = Connect4Game()
-
-    current_player = red
-    while game.get_winner() is None:
-        board = game.get_game_board()
-
-        for r in range(len(board) - 1, -1, -1):
-            print(*board[r])
-
-        print('The valid moves are:', end=' ' )
-        print(*game.get_valid_moves(), sep=', ')
-
-        new_move = current_player.make_move(game)
-        game.make_move(new_move)
-
-        if current_player is red:
-            current_player = yellow
-        else:
-            current_player = red
-
-    if game.get_winner() == 1:
-        print('RED WINS')
-    else:
-        print('YELLOW WINS')
-
-    for move in game.get_move_sequence():
-        print(move, end=' ')
