@@ -12,8 +12,8 @@ This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 """
 import tkinter
 from connect4 import Connect4Game
-from connect4 import Player
-from connect4 import HumanPlayer
+from players import Player
+from players import HumanPlayer
 from typing import Optional
 
 class Game:
@@ -22,6 +22,7 @@ class Game:
     canvas: tkinter.Canvas
     board: list[list[int]]
     human_move: Optional[int]
+    exit_flag: bool
 
     def __init__(self, window, red: Player, yellow: Player):
 
@@ -29,6 +30,9 @@ class Game:
         self.window.geometry('700x700')
         self.canvas = tkinter.Canvas(self.window, width=700, height=700)
         self.canvas.pack()
+        self.exit_flag = False
+        button = tkinter.Button(self.canvas, text='Quit', command=self.quit)
+        button.place(x=600, y=40)
 
         game = Connect4Game()
         self.board = game.get_game_board()
@@ -43,14 +47,12 @@ class Game:
         self.canvas.update()
         self.canvas.update_idletasks()
 
-        while game.get_winner() is None:
+        while game.get_winner() is None and not self.exit_flag:
 
-            move = self._check_input()
-            # if current_player is HumanPlayer:
-            #     move = self._check_input()
-            # else:
-            #     print('here')
-            #     move = current_player.make_move(game)
+            if current_player.is_human:
+                move = self._check_input()
+            else:
+                move = current_player.make_move(game)
 
             game.make_move(move)
 
@@ -68,10 +70,10 @@ class Game:
 
         self._update_board()
         if game.get_winner() == 1:
-            self.canvas.create_text(20, 20, font='Times 20 italic bold',
+            self.canvas.create_text(100, 20, font='Times 20 italic bold',
                                     text="Red Wins")
         else:
-            self.canvas.create_text(20, 20, font='Times 20 italic bold',
+            self.canvas.create_text(100, 20, font='Times 20 italic bold',
                                     text="Yellow Wins")
         self.canvas.update()
 
@@ -112,6 +114,10 @@ class Game:
                     self.canvas.create_oval(j * 100, 600 - i * 100, 100 + j * 100,
                                             100 + (600 - i * 100), fil='yellow')
 
+    def quit(self):
+        self.exit_flag = True
+        self.window.destroy()
+
     def onCol1Click(self, event):
         self.human_move = 0
 
@@ -134,56 +140,10 @@ class Game:
         self.human_move = 6
 
 
-
-def onColClick(event):
-    isClicked = True
-
-
 def run_game(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
     game = Game(window, red, yellow)
 
-    # game = Connect4Game()
-    # board = game.get_game_board()
-    #
-    # window = tkinter.Tk()
-    # window.geometry('700x700')
-    # canv = tkinter.Canvas(window, width=700, height=700)
-    # canv.pack()
-    # col1 = canv.create_rectangle(0, 100, 100, 700, fill='#9e9e9e')
-    # canv.tag_bind(col1, '<Button-1>', onColClick)
-    # for i in range(1, len(board[0])):
-    #     if i % 2 == 0:
-    #         canv.create_rectangle(0 + i * 100, 100, 100 + i * 100, 700, fill='#9e9e9e')
-    #     else:
-    #         canv.create_rectangle(0 + i * 100, 100, 100 + i * 100, 700, fill='#666666')
-    #
-    # canv.create_oval(0, 600, 100, 700)
-    # canv.update()
-    # window.mainloop()
-
-
-def init_display(board: list[list[int]]):
-    """Initalize the display"""
-    window = tkinter.Tk()
-    window.geometry('700x700')
-    canv = tkinter.Canvas(window, width=700, height=700)
-    canv.pack()
-    for i in range(len(board[0])):
-        if i % 2 == 0:
-            canv.create_rectangle(0 + i * 100, 100, 100 + i * 100, 700, fill='#9e9e9e')
-        else:
-            canv.create_rectangle(0 + i * 100, 100, 100 + i * 100, 700, fill='#666666')
-
-    window.mainloop()
-
-    return window, canv
-
-
-def draw_slots(board: list[list[int]], canv: tkinter.Canvas):
-    """Draw the current game board"""
-    canv.create_oval(0, 600, 100, 700)
-    canv.update()
 
 
