@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.signal import convolve2d
+import random
+import csv
 
 board = [
     [0, 0, 0, 0, 0, 0, 0],
@@ -23,3 +25,21 @@ for kernel in detection_kernels:
 
 print(fast_board.clip(min=0, max=1))
 print(fast_board)
+
+
+output = []
+
+for i in range(0, 6):
+    sub_output = []
+    for j in range(0, 7):
+        sub_output.append(random.getrandbits(64))
+    output.append(sub_output)
+
+with open('Zobrist_yellow_keys.csv', 'w') as file:
+    wrtier = csv.writer(file)
+
+    for l in output:
+        wrtier.writerow(l)
+    file.close()
+
+print(output)
