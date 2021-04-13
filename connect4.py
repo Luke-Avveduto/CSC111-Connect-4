@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from typing import Optional
 import tkinter
+import numpy as np
+from scipy.signal import convolve2d
 
 BOARD_ROW = 6
 BOARD_COLUMN = 7

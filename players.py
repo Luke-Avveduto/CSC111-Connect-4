@@ -12,6 +12,11 @@ class Player:
         """Make a move in the current game"""
         raise NotImplementedError
 
+    def receive_move(self, move: int) -> None:
+        """Tells this player what move the other player made
+        """
+        raise NotImplementedError
+
 
 class HumanPlayer(Player):
     """A Connect 4 player that requires an input"""
@@ -31,6 +36,9 @@ class HumanPlayer(Player):
 
         return move
 
+    def receive_move(self, move: int) -> None:
+        return None
+
 
 class RandomPlayer(Player):
     """A connect 4 player that makes random valid moves
@@ -40,6 +48,9 @@ class RandomPlayer(Player):
         """Make a move in the current game
         """
         return random.choice(game.get_valid_moves())
+
+    def receive_move(self, move: int) -> None:
+        return None
 
 
 class AIPlayerBasic(Player):
@@ -64,4 +75,10 @@ class AIPlayerBasic(Player):
                 self._d_tree = choice_subtree
             return choice
         else:
-            return self._d_tree.get_best_move()
+            best_move = self._d_tree.get_best_move()
+            self._d_tree = self._d_tree.get_this_move(best_move)
+            return best_move
+
+    def receive_move(self, move: int) -> None:
+        if self._d_tree is not None:
+            self._d_tree = self._d_tree.get_this_move(move)

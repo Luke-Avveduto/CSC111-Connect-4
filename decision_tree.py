@@ -87,7 +87,7 @@ class DecisionTree:
         if self.is_empty():
             return ''
         else:
-            s = depth * '  ' + f'{self._move}\n'  # Note how we're using depth to indent
+            s = depth * '  ' + f'{self._move}' + '---' + f'{self._eval}\n'  # Note how we're using depth to indent
             for subtree in self._subtrees:
                 s += subtree._str_indented(depth + 1)  # Note the argument depth + 1
             return s
@@ -174,7 +174,6 @@ def write_to_file(d_tree: DecisionTree, output_file) -> None:
     data = []
     for subtree in d_tree.get_subtrees():
         data.extend(subtree.output_list())
-    print(data)
     with open(output_file, mode='w', newline="") as output_csv:
         writer = csv.writer(output_csv)
 
