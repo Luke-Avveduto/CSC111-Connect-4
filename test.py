@@ -18,8 +18,10 @@ diag1_kernel = np.eye(4, dtype=np.uint8)
 diag2_kernel = np.fliplr(diag1_kernel)
 detection_kernels = [horizontal_kernel, vertical_kernel, diag1_kernel, diag2_kernel]
 
-for kernel in detection_kernels:
-    print(np.any(convolve2d(fast_board, kernel, mode='valid') == 4))
+# for kernel in detection_kernels:
+#     print(np.any(convolve2d(fast_board, kernel, mode='valid') == 4))
+#
+# print(fast_board.clip(min=0, max=1))
+# print(fast_board)
 
-print(fast_board.clip(min=0, max=1))
-print(fast_board)
+print(diag1_kernel * -1)
