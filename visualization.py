@@ -15,14 +15,16 @@ from connect4 import Connect4Game
 from players import Player
 from players import HumanPlayer
 from typing import Optional
+import numpy as np
 
 class Game:
 
     window: tkinter.Tk
     canvas: tkinter.Canvas
-    board: list[list[int]]
+    board: np.array
     human_move: Optional[int]
     exit_flag: bool
+    is_replay: bool
 
     def __init__(self, window, red: Player, yellow: Player):
 
@@ -31,8 +33,11 @@ class Game:
         self.canvas = tkinter.Canvas(self.window, width=700, height=700)
         self.canvas.pack()
         self.exit_flag = False
-        button = tkinter.Button(self.canvas, text='Quit', command=self.quit)
-        button.place(x=600, y=40)
+        self.is_replay = False
+        button_quit = tkinter.Button(self.canvas, text='Quit', command=self.quit)
+        button_quit.place(x=600, y=40)
+        button_replay = tkinter.Button(self.canvas, text='Replay', command=self.replay)
+        button_replay.place(x=550, y=40)
 
         game = Connect4Game()
         self.board = game.get_game_board()
@@ -42,46 +47,68 @@ class Game:
         current_player = red
         self.human_move = None
 
-        self.window.update()
-        self.window.update_idletasks()
-        self.canvas.update()
-        self.canvas.update_idletasks()
+        if not self.exit_flag:
+            self.window.update()
+            self.window.update_idletasks()
+            self.canvas.update()
+            self.canvas.update_idletasks()
 
-        while game.get_winner() is None and not self.exit_flag:
+        while game.get_winner() is None:
 
             if current_player.is_human:
                 move = self._check_input()
             else:
                 move = current_player.make_move(game)
 
-            game.make_move(move)
+            if move is None:
+                break
+
+            while move not in game.get_valid_moves():
+                if self.exit_flag:
+                    break
+                if current_player.is_human:
+                    move = self._check_input()
+                else:
+                    move = current_player.make_move(game)
+
+            if not self.exit_flag:
+                game.make_move(move)
 
             if current_player is red:
                 current_player = yellow
             else:
                 current_player = red
 
+            if not self.exit_flag:
+                self._update_board()
+
+            if self.exit_flag:
+                break
+
+            self.window.update()
+            self.canvas.update()
+
+        if not self.exit_flag:
             self._update_board()
 
-            self.window.update()
-            self.window.update_idletasks()
-            self.canvas.update()
-            self.canvas.update_idletasks()
-
-        self._update_board()
         if game.get_winner() == 1:
             self.canvas.create_text(100, 20, font='Times 20 italic bold',
-                                    text="Red Wins")
-        else:
+                                            text="Red Wins")
+            self.canvas.update()
+        elif game.get_winner() == -1:
             self.canvas.create_text(100, 20, font='Times 20 italic bold',
-                                    text="Yellow Wins")
-        self.canvas.update()
+                                            text="Yellow Wins")
+            self.canvas.update()
 
-    def _check_input(self) -> int:
+        self.window.mainloop()
+
+    def _check_input(self) -> Optional[int]:
 
         while self.human_move is None:
-            self.window.update()
-            self.window.update_idletasks()
+            if self.exit_flag:
+                return None
+            else:
+                self.window.update()
         move_copy = self.human_move
         self.human_move = None
         return move_copy
@@ -110,12 +137,17 @@ class Game:
                 if self.board[i][j] == 1:
                     self.canvas.create_oval(j * 100, 600 - i * 100, 100 + j * 100,
                                             100 + (600 - i * 100), fil='red')
-                elif self.board[i][j] == 2:
+                elif self.board[i][j] == -1:
                     self.canvas.create_oval(j * 100, 600 - i * 100, 100 + j * 100,
                                             100 + (600 - i * 100), fil='yellow')
 
     def quit(self):
         self.exit_flag = True
+        self.window.destroy()
+
+    def replay(self):
+        self.exit_flag = True
+        self.is_replay = True
         self.window.destroy()
 
     def onCol1Click(self, event):
@@ -144,6 +176,8 @@ def run_game(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
     game = Game(window, red, yellow)
-
+    while game.is_replay:
+        window = tkinter.Tk()
+        game = Game(window, red, yellow)
 
 
