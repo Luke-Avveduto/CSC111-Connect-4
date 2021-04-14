@@ -82,3 +82,23 @@ class AIPlayerBasic(Player):
     def receive_move(self, move: int) -> None:
         if self._d_tree is not None:
             self._d_tree = self._d_tree.get_this_move(move)
+
+
+class AIPlayerComplex(Player):
+    _transposition_table: dict[int:int]
+
+    def __init__(self) -> None:
+        """Creates a new instance of the AIPlayerComplex class. Reads in the values in it's opening
+        book.
+        """
+        self.is_human = False
+
+    def make_move(self, game: Connect4Game) -> int:
+        """Make a move in the current game"""
+        raise NotImplementedError
+
+    def receive_move(self, move: int) -> None:
+        """Tells this player what move the other player made
+        """
+        raise NotImplementedError
+

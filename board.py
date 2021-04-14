@@ -15,7 +15,9 @@ GAME_BOARD = [[0, 0, 0, 0, 0, 0, 0],
 class Board:
     """A class representing a Connect 4 board"""
     board_array: np.array
+    move_number: int
     hash: int
+    _valid_move_order: dict[int: int]
     _red_hash_keys: np.array
     _yellow_hash_keys: np.array
     _column_to_row: dict[int: int]
@@ -31,6 +33,8 @@ class Board:
         else:
             self.board_array = np.array(GAME_BOARD)
 
+        self.move_number = 0
+
         horizontal_kernel = np.array([[1, 1, 1, 1]])
         vertical_kernel = np.transpose(horizontal_kernel)
         diag1_kernel = np.eye(4, dtype=np.uint8)
@@ -38,9 +42,11 @@ class Board:
         self._detection_kernels_red = [horizontal_kernel, vertical_kernel, diag1_kernel, diag2_kernel]
         self._detection_kernels_yellow = [kernal * -1 for kernal in self._detection_kernels_red]
 
+        self._valid_move_order = {3: 0, 2: 1, 4:2, 5: 3, 1:4, 0:5, 6:6}
+
         self._is_red_active = red_active
         self._column_to_row = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
-        self._valid_moves = [0, 1, 2, 3, 4, 5, 6]
+        self._valid_moves = [3, 2, 4, 5, 1, 0, 6]
         self._win_state = None
 
         red_hash_keys = []
@@ -82,10 +88,11 @@ class Board:
             raise ValueError(f'Move "{move}" is not valid')
 
         self._update_board(move)
-        self._recalculate_valid_moves()
+        # self._recalculate_valid_moves()
 
         self._win_state = self._check_winner()
         self._is_red_active = not self._is_red_active
+        self.move_number += 1
 
     def un_move(self, previous_move) -> None:
         """Return the board to the state before the previous move
@@ -93,6 +100,8 @@ class Board:
             - previous_move must have been the last move played
         """
         self._column_to_row[previous_move] -= 1
+        if self._column_to_row[previous_move] < 6:
+            self._valid_moves.insert(self._valid_move_order[previous_move], previous_move)
         row = self._column_to_row[previous_move]
         self.board_array[row][previous_move] = 0
 
@@ -103,10 +112,12 @@ class Board:
         else:
             self.hash = self.hash ^ self._red_hash_keys[row][previous_move]
 
-        self._recalculate_valid_moves()
+        # self._recalculate_valid_moves()
 
         if self._win_state is not None:
             self._win_state = None
+
+        self.move_number -= 1
 
     def _update_board(self, move: int) -> None:
         """Update board by the new move"""
@@ -119,6 +130,9 @@ class Board:
             self.hash = self.hash ^ self._yellow_hash_keys[row][move]
 
         self._column_to_row[move] += 1
+
+        if self._column_to_row[move] == 6:
+            self._valid_moves.pop(self._valid_move_order[move])
 
     def _recalculate_valid_moves(self) -> None:
         """Recalculates the valid moves the next player can make"""
