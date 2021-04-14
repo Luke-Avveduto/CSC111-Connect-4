@@ -88,7 +88,7 @@ class Board:
             raise ValueError(f'Move "{move}" is not valid')
 
         self._update_board(move)
-        self._recalculate_valid_moves()
+        #self._recalculate_valid_moves()
 
         self._win_state = self._check_winner()
         self._is_red_active = not self._is_red_active
@@ -100,8 +100,8 @@ class Board:
             - previous_move must have been the last move played
         """
         self._column_to_row[previous_move] -= 1
-        # if self._column_to_row[previous_move] < 6:
-        #     self._valid_moves.insert(self._valid_move_order[previous_move], previous_move)
+        if self._column_to_row[previous_move] == 5:
+            self._valid_moves.insert(self._valid_move_order[previous_move], previous_move)
         row = self._column_to_row[previous_move]
         self.board_array[row][previous_move] = 0
 
@@ -112,7 +112,7 @@ class Board:
         else:
             self.hash = self.hash ^ int(self._red_hash_keys[row][previous_move])
 
-        self._recalculate_valid_moves()
+        # self._recalculate_valid_moves()
 
         if self._win_state is not None:
             self._win_state = None
@@ -130,9 +130,8 @@ class Board:
             self.hash = self.hash ^ int(self._yellow_hash_keys[row][move])
 
         self._column_to_row[move] += 1
-
-        # if self._column_to_row[move] == 6:
-        #     self._valid_moves.remove(move)
+        if self._column_to_row[move] == 6:
+            self._valid_moves.remove(move)
 
     def _recalculate_valid_moves(self) -> None:
         """Recalculates the valid moves the next player can make"""

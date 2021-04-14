@@ -99,7 +99,9 @@ class AIPlayerComplex(Player):
         max_score = -math.inf
         best_move = None
         for move in board.get_valid_moves():
+            print(move)
             score = self.evaluate(move, board, -math.inf, math.inf)
+            print(score)
             if score > max_score:
                 max_score = score
                 best_move = move
@@ -123,6 +125,7 @@ class AIPlayerComplex(Player):
             alpha = max(alpha, value)
             if alpha >= beta:
                 board.un_move(move)
+                print(value)
                 return value
         board.un_move(move)
         return value

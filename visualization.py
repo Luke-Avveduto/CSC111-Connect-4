@@ -180,7 +180,7 @@ class Game:
 def run_game(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
-    game = Game(window, red, yellow, TEST)
+    game = Game(window, red, yellow)
     while game.is_replay:
         window = tkinter.Tk()
         game = Game(window, red, yellow)
@@ -191,9 +191,9 @@ def test():
     run_game(red, yellow)
 
 
-TEST = [[0, -1, 0, 1, 0, 0, 0],
-        [0, -1, 0, 1, 0, 0, 0],
-        [0, -1, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0]]
+TEST = [[1, -1, -1, 1, 1, -1, -1],
+        [1, -1, -1, -1, 1, 1, 1],
+        [-1, 1, 1, 1, -1, 0, 0],
+        [0, 1, -1, -1, 1, 0, 0],
+        [0, -1, 1, 1, 0, 0, 0],
+        [0, -1, 0, -1, 0, 0, 0]]
