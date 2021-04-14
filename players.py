@@ -2,7 +2,8 @@ from typing import Optional
 from connect4 import Connect4Game
 from decision_tree import DecisionTree
 import random
-
+from board import Board
+import math
 
 class Player:
     """An abstract class representing a Connect 4 player"""
@@ -93,7 +94,7 @@ class AIPlayerComplex(Player):
         """
         self.is_human = False
 
-    def make_move(self, game: Connect4Game) -> int:
+    def make_move(self, board: Board) -> int:
         """Make a move in the current game"""
         raise NotImplementedError
 
@@ -101,4 +102,38 @@ class AIPlayerComplex(Player):
         """Tells this player what move the other player made
         """
         raise NotImplementedError
+
+    def evaluate(self, move: int, board: Board, alpha: int, beta: int) -> int:
+        board.make_move(move)
+        score = board.get_winner()
+        if score is not None:
+            board.un_move(move)
+            return score
+        value = -math.inf
+
+        for next_move in board.get_valid_moves():  # Yellows moves
+            value = max(value, -self.evaluate(next_move, board, -beta, -alpha))
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                board.un_move(move)
+                return value
+        board.un_move(move)
+        return value
+
+    def find_best_move(self, board: Board) -> int:
+        if board.move_number == 6*7:  # Checks for a draw
+            return 0
+
+        for move in board.get_valid_moves():
+            board.make_move(move)
+            winner = board.get_winner()
+            board.un_move(move)
+            if winner is not None:
+                return winner
+
+        for move in board.get_valid_moves():
+            board.make_move(move)
+            winner = -self.find_best_move(board)
+
+
 

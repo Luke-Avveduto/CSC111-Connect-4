@@ -40,9 +40,9 @@ class Connect4Game:
         """Return a list of the valid moves for the active player."""
         return self._board.get_valid_moves()
 
-    def get_game_board(self) -> np.array:
+    def get_game_board(self) -> Board:
         """Return a Connect 4 gameboard at its current state"""
-        return self._board.board_array
+        return self._board
 
     def get_move_sequence(self) -> list[int]:
         """Return a list of moves that have been made up to the current game state"""
