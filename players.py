@@ -9,7 +9,7 @@ class Player:
     """An abstract class representing a Connect 4 player"""
     is_human: bool
 
-    def make_move(self, game: Connect4Game) -> int:
+    def make_move(self, board: Board):
         """Make a move in the current game"""
         raise NotImplementedError
 
@@ -96,14 +96,21 @@ class AIPlayerComplex(Player):
 
     def make_move(self, board: Board) -> int:
         """Make a move in the current game"""
-        raise NotImplementedError
+        max_score = -math.inf
+        best_move = None
+        for move in board.get_valid_moves():
+            score = self.evaluate(move, board, -math.inf, math.inf)
+            if score > max_score:
+                max_score = score
+                best_move = move
+        return best_move
 
     def receive_move(self, move: int) -> None:
         """Tells this player what move the other player made
         """
         raise NotImplementedError
 
-    def evaluate(self, move: int, board: Board, alpha: int, beta: int) -> int:
+    def evaluate(self, move: int, board: Board, alpha: float, beta: float) -> int:
         board.make_move(move)
         score = board.get_winner()
         if score is not None:

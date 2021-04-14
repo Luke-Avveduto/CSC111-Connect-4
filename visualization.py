@@ -14,6 +14,7 @@ import tkinter
 from connect4 import Connect4Game
 from players import Player
 from players import HumanPlayer
+from players import AIPlayerComplex
 from typing import Optional
 import numpy as np
 
@@ -26,7 +27,7 @@ class Game:
     exit_flag: bool
     is_replay: bool
 
-    def __init__(self, window, red: Player, yellow: Player):
+    def __init__(self, window, red: Player, yellow: Player, board: list[list[int]] = None):
 
         self.window = window
         self.window.geometry('700x700')
@@ -39,10 +40,14 @@ class Game:
         button_replay = tkinter.Button(self.canvas, text='Replay', command=self.replay)
         button_replay.place(x=550, y=40)
 
-        game = Connect4Game()
+        if board is not None:
+            game = Connect4Game(board)
+        else:
+            game = Connect4Game()
         self.board = game.get_game_board()
 
         self._draw_board()
+        self._update_board()
 
         current_player = red
         self.human_move = None
@@ -58,7 +63,7 @@ class Game:
             if current_player.is_human:
                 move = self._check_input()
             else:
-                move = current_player.make_move(game)
+                move = current_player.make_move(game.get_game_board())
 
             if move is None:
                 break
@@ -69,7 +74,7 @@ class Game:
                 if current_player.is_human:
                     move = self._check_input()
                 else:
-                    move = current_player.make_move(game)
+                    move = current_player.make_move(game.get_game_board())
 
             if not self.exit_flag:
                 game.make_move(move)
@@ -132,12 +137,12 @@ class Game:
 
     def _update_board(self):
 
-        for i in range(len(self.board)):
-            for j in range(len(self.board[i])):
-                if self.board[i][j] == 1:
+        for i in range(len(self.board.board_array)):
+            for j in range(len(self.board.board_array[i])):
+                if self.board.board_array[i][j] == 1:
                     self.canvas.create_oval(j * 100, 600 - i * 100, 100 + j * 100,
                                             100 + (600 - i * 100), fil='red')
-                elif self.board[i][j] == -1:
+                elif self.board.board_array[i][j] == -1:
                     self.canvas.create_oval(j * 100, 600 - i * 100, 100 + j * 100,
                                             100 + (600 - i * 100), fil='yellow')
 
@@ -175,9 +180,20 @@ class Game:
 def run_game(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
-    game = Game(window, red, yellow)
+    game = Game(window, red, yellow, TEST)
     while game.is_replay:
         window = tkinter.Tk()
         game = Game(window, red, yellow)
 
+def test():
+    red = AIPlayerComplex()
+    yellow = HumanPlayer()
+    run_game(red, yellow)
 
+
+TEST = [[0, -1, 0, 1, 0, 0, 0],
+        [0, -1, 0, 1, 0, 0, 0],
+        [0, -1, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0]]

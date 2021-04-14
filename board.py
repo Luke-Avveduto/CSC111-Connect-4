@@ -88,7 +88,7 @@ class Board:
             raise ValueError(f'Move "{move}" is not valid')
 
         self._update_board(move)
-        # self._recalculate_valid_moves()
+        self._recalculate_valid_moves()
 
         self._win_state = self._check_winner()
         self._is_red_active = not self._is_red_active
@@ -100,19 +100,19 @@ class Board:
             - previous_move must have been the last move played
         """
         self._column_to_row[previous_move] -= 1
-        if self._column_to_row[previous_move] < 6:
-            self._valid_moves.insert(self._valid_move_order[previous_move], previous_move)
+        # if self._column_to_row[previous_move] < 6:
+        #     self._valid_moves.insert(self._valid_move_order[previous_move], previous_move)
         row = self._column_to_row[previous_move]
         self.board_array[row][previous_move] = 0
 
         self._is_red_active = not self._is_red_active
 
         if self._is_red_active:
-            self.hash = self.hash ^ self._red_hash_keys[row][previous_move]
+            self.hash = self.hash ^ int(self._red_hash_keys[row][previous_move])
         else:
-            self.hash = self.hash ^ self._red_hash_keys[row][previous_move]
+            self.hash = self.hash ^ int(self._red_hash_keys[row][previous_move])
 
-        # self._recalculate_valid_moves()
+        self._recalculate_valid_moves()
 
         if self._win_state is not None:
             self._win_state = None
@@ -124,22 +124,27 @@ class Board:
         row = self._column_to_row[move]
         if self._is_red_active:
             self.board_array[row][move] = 1
-            self.hash = self.hash ^ self._red_hash_keys[row][move]
+            self.hash = self.hash ^ int(self._red_hash_keys[row][move])
         else:
             self.board_array[row][move] = -1
-            self.hash = self.hash ^ self._yellow_hash_keys[row][move]
+            self.hash = self.hash ^ int(self._yellow_hash_keys[row][move])
 
         self._column_to_row[move] += 1
 
-        if self._column_to_row[move] == 6:
-            self._valid_moves.pop(self._valid_move_order[move])
+        # if self._column_to_row[move] == 6:
+        #     self._valid_moves.remove(move)
 
     def _recalculate_valid_moves(self) -> None:
         """Recalculates the valid moves the next player can make"""
-        for i in range(len(self._valid_moves)):
-            if self.board_array[5][self._valid_moves[i]] != 0:
-                self._valid_moves.pop(i)
-                return
+        new_valid_moves = []
+        for i in range(len(self.board_array[5])):
+            if self.board_array[5][i] == 0:
+                new_valid_moves.append(i)
+        self._valid_moves = new_valid_moves
+        # for i in range(len(self._valid_moves)):
+        #     if self.board_array[5][self._valid_moves[i]] != 0:
+        #         self._valid_moves.pop(i)
+        #         return
 
     def _check_winner(self) -> Optional[int]:
         """Checks whether the current game state has a winner
