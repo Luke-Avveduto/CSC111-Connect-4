@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.signal import convolve2d
 from typing import Optional
+import csv
+
 
 GAME_BOARD = [[0, 0, 0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0, 0, 0],
@@ -9,9 +11,13 @@ GAME_BOARD = [[0, 0, 0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0, 0, 0]]
 
+
 class Board:
     """A class representing a Connect 4 board"""
     board_array: np.array
+    hash: int
+    _red_hash_keys: np.array
+    _yellow_hash_keys: np.array
     _column_to_row: dict[int: int]
     _is_red_active: bool
     _valid_moves: list[int]
@@ -36,6 +42,22 @@ class Board:
         self._column_to_row = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
         self._valid_moves = [0, 1, 2, 3, 4, 5, 6]
         self._win_state = None
+
+        red_hash_keys = []
+        with open('data/Zobrist_Hash_Keys/Zobrist_red_key.csv') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                red_hash_keys.append(row)
+        self._red_hash_keys = np.array(red_hash_keys)
+
+        yellow_hash_keys = []
+        with open('data/Zobrist_Hash_Keys/Zobrist_yellow_key.csv') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                yellow_hash_keys.append(row)
+        self._yellow_hash_keys = np.array(yellow_hash_keys)
+
+        self.hash = 0
 
     def get_valid_moves(self) -> list[int]:
         """Return a list of the valid moves for the active player."""
@@ -65,13 +87,37 @@ class Board:
         self._win_state = self._check_winner()
         self._is_red_active = not self._is_red_active
 
+    def un_move(self, previous_move) -> None:
+        """Return the board to the state before the previous move
+        Precondition:
+            - previous_move must have been the last move played
+        """
+        self._column_to_row[previous_move] -= 1
+        row = self._column_to_row[previous_move]
+        self.board_array[row][previous_move] = 0
+
+        self._is_red_active = not self._is_red_active
+
+        if self._is_red_active:
+            self.hash = self.hash ^ self._red_hash_keys[row][previous_move]
+        else:
+            self.hash = self.hash ^ self._red_hash_keys[row][previous_move]
+
+        self._recalculate_valid_moves()
+
+        if self._win_state is not None:
+            self._win_state = None
+
     def _update_board(self, move: int) -> None:
         """Update board by the new move"""
         row = self._column_to_row[move]
         if self._is_red_active:
             self.board_array[row][move] = 1
+            self.hash = self.hash ^ self._red_hash_keys[row][move]
         else:
             self.board_array[row][move] = -1
+            self.hash = self.hash ^ self._yellow_hash_keys[row][move]
+
         self._column_to_row[move] += 1
 
     def _recalculate_valid_moves(self) -> None:
