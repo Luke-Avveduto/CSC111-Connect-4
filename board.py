@@ -88,7 +88,6 @@ class Board:
             raise ValueError(f'Move "{move}" is not valid')
 
         self._update_board(move)
-        #self._recalculate_valid_moves()
 
         self._win_state = self._check_winner()
         self._is_red_active = not self._is_red_active
@@ -133,17 +132,13 @@ class Board:
         if self._column_to_row[move] == 6:
             self._valid_moves.remove(move)
 
-    def _recalculate_valid_moves(self) -> None:
-        """Recalculates the valid moves the next player can make"""
-        new_valid_moves = []
-        for i in range(len(self.board_array[5])):
-            if self.board_array[5][i] == 0:
-                new_valid_moves.append(i)
-        self._valid_moves = new_valid_moves
-        # for i in range(len(self._valid_moves)):
-        #     if self.board_array[5][self._valid_moves[i]] != 0:
-        #         self._valid_moves.pop(i)
-        #         return
+    # def _recalculate_valid_moves(self) -> None:
+    #     """Recalculates the valid moves the next player can make"""
+    #     new_valid_moves = []
+    #     for i in range(len(self.board_array[5])):
+    #         if self.board_array[5][i] == 0:
+    #             new_valid_moves.append(i)
+    #     self._valid_moves = new_valid_moves
 
     def _check_winner(self) -> Optional[int]:
         """Checks whether the current game state has a winner
