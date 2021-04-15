@@ -17,6 +17,7 @@ import tkinter
 import numpy as np
 from scipy.signal import convolve2d
 from board import Board
+import networkx as nx
 
 BOARD_ROW = 6
 BOARD_COLUMN = 7
@@ -55,6 +56,9 @@ class Connect4Game:
         If move is not a currently valid move, raise a Value Error
         """
         self._board.make_move(move)
+        self._move_sequence.append(move)
+        if self.get_winner() is not None:
+            self._move_sequence.append(self.get_winner())
         # if move not in self._valid_moves:
         #     raise ValueError(f'Move "{move}" is not valid')
         #

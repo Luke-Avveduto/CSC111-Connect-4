@@ -67,10 +67,13 @@ class RandomPlayer(Player):
     """A connect 4 player that makes random valid moves
     """
 
-    def make_move(self, game: Connect4Game) -> int:
+    def __init__(self):
+        self.is_human = False
+
+    def make_move(self, board: Board) -> int:
         """Make a move in the current game
         """
-        return random.choice(game.get_valid_moves())
+        return random.choice(board.get_valid_moves())
 
     # def receive_move(self, move: int) -> None:
     #     return None
