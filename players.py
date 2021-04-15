@@ -170,8 +170,9 @@ class AIPlayerComplex(Player):
         board.make_move(move)
 
         if board.hash in self._transposition_table:
+            hash_value = board.hash
             board.un_move(move)
-            return self._transposition_table[board.hash]
+            return self._transposition_table[hash_value]
 
         score = board.get_winner()
         if score is not None:
