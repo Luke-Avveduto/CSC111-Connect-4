@@ -97,7 +97,7 @@ def load_opening_book(file: str) -> {int: int}:
     """
     opening_book = {}
     with open(file) as csv_file:
-        reader = csv.reader(file)
+        reader = csv.reader(csv_file)
         for row in reader:
             opening_book[row[0]] = row[1]
     return opening_book
