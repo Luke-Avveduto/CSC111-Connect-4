@@ -1,22 +1,44 @@
+"""CSC111 Final Project: Exploring Using Graph Based Data Structures to Implement a Connect 4 AI
+
+Module Description
+==================
+
+This module contains the Player abstract class and four implementations of it:
+HumanPlayer, RandomPlayer, AIPlayerBasic, and AIPlayerComplex. The Player class is designed to
+represent a player in a game of connect 4. This means they are given the state of the board in some
+way shape or form, and then must decide on a move to play. All of the provided implementations do
+that, but how they achieve that varies massively.
+
+Copyright and Usage Information
+===============================
+
+This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
+"""
 from typing import Optional
 from connect4 import Connect4Game
 from decision_tree import DecisionTree
 import random
 from board import Board
+import opening_book_gen
 import math
 
+
 class Player:
-    """An abstract class representing a Connect 4 player"""
+    """An abstract class representing a Connect 4 player
+    """
+    # Public Instance Attributes:
+    #   - is_human: this is a boolean value that is True when instances of this class require
+    #               human input to be played. False otherwise
     is_human: bool
 
     def make_move(self, board: Board):
         """Make a move in the current game"""
         raise NotImplementedError
 
-    def receive_move(self, move: int) -> None:
-        """Tells this player what move the other player made
-        """
-        raise NotImplementedError
+    # def receive_move(self, move: int) -> None:
+    #     """Tells this player what move the other player made
+    #     """
+    #     raise NotImplementedError
 
 
 class HumanPlayer(Player):
@@ -37,8 +59,8 @@ class HumanPlayer(Player):
 
         return move
 
-    def receive_move(self, move: int) -> None:
-        return None
+    # def receive_move(self, move: int) -> None:
+    #     return None
 
 
 class RandomPlayer(Player):
@@ -50,8 +72,8 @@ class RandomPlayer(Player):
         """
         return random.choice(game.get_valid_moves())
 
-    def receive_move(self, move: int) -> None:
-        return None
+    # def receive_move(self, move: int) -> None:
+    #     return None
 
 
 class AIPlayerBasic(Player):
@@ -86,16 +108,39 @@ class AIPlayerBasic(Player):
 
 
 class AIPlayerComplex(Player):
+    """An implementation of the ADT Player that uses a combination of the negamax algorithm,
+    alpha-beta pruning, a transposition table, and an opening book to in order to always play a
+    winning move. In order to keep the running time down, this implementation only solves the game
+    'weakly' meaning that while it will win 100% of the time since it goes first every game,
+    (as connect 4 is solved game with player 1 being the winner), it will not always win the fewest
+    number of turns.
+
+    Details on the negamax algorithm can be found here: https://en.wikipedia.org/wiki/Negamax
+    Details on transposition tables can be found here: https://en.wikipedia.org/wiki/Transposition_table
+
+    Representation Invariants:
+        - all({self._transposition_table[key] in {1, 0, -1} for key in self._transposition_table[key]})
+    """
+    # Private Instance Attributes:
+    #   - _transposition_table: This is a dict that maps boards to their evaluation (whether it is
+    #   a win for the AI or not). The values for this dict are in the set {1, 0, -1} and its keys
+    #   are hashes that correspond to a board. For more information on these hashes, see
+    #   opening_book_gen.py
     _transposition_table: dict[int:int]
 
-    def __init__(self) -> None:
+    def __init__(self, opening_book: str = 'data/opening_books/opening_book.csv') -> None:
         """Creates a new instance of the AIPlayerComplex class. Reads in the values in it's opening
         book.
         """
         self.is_human = False
+        self._transposition_table = opening_book_gen.load_opening_book(opening_book)
 
     def make_move(self, board: Board) -> int:
-        """Make a move in the current game"""
+        """Returns a move that can be played in the game represented by the 'board' argument.
+        Move selection is done using the 'evaluate' function which evaluates the potential board
+        created by playing one of the possible valid moves. The move that creates the board with the
+        highest evaluation for the AI is the move that is eventually returned.
+        """
         max_score = -math.inf
         best_move = None
         for move in board.get_valid_moves():
@@ -107,15 +152,27 @@ class AIPlayerComplex(Player):
                 best_move = move
         return best_move
 
-    def receive_move(self, move: int) -> None:
-        """Tells this player what move the other player made
-        """
-        raise NotImplementedError
-
     def evaluate(self, move: int, board: Board, alpha: float, beta: float) -> int:
+        """This function returns the evaluation of 'board' after the move 'move' is played. It does
+        this via recursion, the negamax algorithm, alpha-beta pruning, and a transposition table.
+
+        Board is NOT mutated when this function is run.
+        self._transposition_table CAN be mutated. If it encounters a board that does not have an
+        entry in self._transposition_table, the hash of the board and the evaluation will be added
+        as an entry.
+
+        Preconditions:
+            - move in board.get_valid_moves()
+        """
         board.make_move(move)
+
+        if board.hash in self._transposition_table:
+            board.un_move(move)
+            return self._transposition_table[board.hash]
+
         score = board.get_winner()
         if score is not None:
+            self._transposition_table[board.hash] = score
             board.un_move(move)
             return score
         value = -math.inf
@@ -124,26 +181,27 @@ class AIPlayerComplex(Player):
             value = max(value, -self.evaluate(next_move, board, -beta, -alpha))
             alpha = max(alpha, value)
             if alpha >= beta:
+                self._transposition_table[board.hash] = value
                 board.un_move(move)
-                print(value)
                 return value
+        self._transposition_table[board.hash] = value
         board.un_move(move)
         return value
 
-    def find_best_move(self, board: Board) -> int:
-        if board.move_number == 6*7:  # Checks for a draw
-            return 0
-
-        for move in board.get_valid_moves():
-            board.make_move(move)
-            winner = board.get_winner()
-            board.un_move(move)
-            if winner is not None:
-                return winner
-
-        for move in board.get_valid_moves():
-            board.make_move(move)
-            winner = -self.find_best_move(board)
+    # def find_best_move(self, board: Board) -> int:
+    #     if board.move_number == 6*7:  # Checks for a draw
+    #         return 0
+    #
+    #     for move in board.get_valid_moves():
+    #         board.make_move(move)
+    #         winner = board.get_winner()
+    #         board.un_move(move)
+    #         if winner is not None:
+    #             return winner
+    #
+    #     for move in board.get_valid_moves():
+    #         board.make_move(move)
+    #         winner = -self.find_best_move(board)
 
 
 
