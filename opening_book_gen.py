@@ -48,7 +48,6 @@ def create_opening_book(file: str, output: str) -> None:
             row_board = np.array(row).reshape((7, 6)).transpose()
 
             board_list.append((row_board, outcome))
-            board_list.append((np.flip(row_board, 1), outcome))
 
     red_hash_keys = []
     with open('data/Zobrist_Hash_Keys/Zobrist_red_key.csv') as file:
@@ -68,6 +67,61 @@ def create_opening_book(file: str, output: str) -> None:
             writer.writerow([_get_board_hash(board[0], red_hash_keys, yellow_hash_keys), board[1]])
 
         output_file.close()
+
+    print(red_hash_keys)
+
+
+def test(file: str, output: str) -> list[list[int]]:
+    """Generates an opening book in the form of csv where the first value on a line contains a
+    hash of a board given by Zobrist hashing using the values found in 'Zobrist_red_key.csv' and
+    'Zobrist_yellow_key.csv' and second and final value is a score for the board of the
+    corresponding hash. The score takes the form of 1 if the player 1 (red) wins, 0 for a draw, and
+    -1 if player 2 (yellow) wins.
+
+    Preconditions:
+        - 'file' is the path to a file in the form described by "connect-4.names"
+    """
+    board_list = []
+    with open(file) as csv_file:
+        reader = csv.reader(csv_file)
+        for row in reader:
+            outcome = row.pop()
+            if outcome == 'win':
+                outcome = 1
+            elif outcome == 'draw':
+                outcome = 0
+            else:
+                outcome = -1
+
+            convert = {'x': 1, 'o': -1, 'b': 0}
+            row = [convert[r] for r in row]
+            row_board = np.array(row).reshape((7, 6)).transpose()
+
+            board_list.append((row_board, outcome))
+            board_list.append((np.flip(row_board, 1), outcome))
+
+    red_hash_keys = []
+    with open('data/Zobrist_Hash_Keys/Zobrist_red_key.csv') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            red_hash_keys.append([int(r) for r in row])
+
+    yellow_hash_keys = []
+    with open('data/Zobrist_Hash_Keys/Zobrist_yellow_key.csv') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            yellow_hash_keys.append([int(r) for r in row])
+
+    # with open(output, 'w', newline='') as output_file:
+    #     writer = csv.writer(output_file)
+    #     for board in board_list:
+    #         writer.writerow([_get_board_hash(board[0], red_hash_keys, yellow_hash_keys), board[1]])
+    #
+    #     output_file.close()
+
+    print()
+
+    return red_hash_keys, yellow_hash_keys
 
 
 def _get_board_hash(board: np.array, red_hash_keys: list[list[int]],
@@ -99,5 +153,5 @@ def load_opening_book(file: str) -> {int: int}:
     with open(file) as csv_file:
         reader = csv.reader(csv_file)
         for row in reader:
-            opening_book[row[0]] = row[1]
+            opening_book[int(row[0])] = int(row[1])
     return opening_book

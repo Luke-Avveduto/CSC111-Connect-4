@@ -20,8 +20,8 @@ from typing import Optional
 import numpy as np
 import networkx as nx
 import time
-import matplotlib.pyplot as plt
-from test import hierarchy_pos
+# import matplotlib.pyplot as plt
+# from test import hierarchy_pos
 
 class Game:
 
@@ -233,7 +233,7 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
 def run_game(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
-    game = Game(window, red, yellow, TEST)
+    game = Game(window, red, yellow)
     while game.is_replay:
         window = tkinter.Tk()
         game = Game(window, red, yellow)

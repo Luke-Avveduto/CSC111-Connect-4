@@ -171,13 +171,19 @@ class AIPlayerComplex(Player):
         board.make_move(move)
 
         if board.hash in self._transposition_table:
+            print('move in table')
+            print('move is', move)
+            print('hash is', board.hash)
+            input()
             hash_value = board.hash
             board.un_move(move)
             return self._transposition_table[hash_value]
-
+        # else:
+            # print('move not in table')
+        # print('grr')
         score = board.get_winner()
         if score is not None:
-            self._transposition_table[board.hash] = score
+            # self._transposition_table[board.hash] = score
             board.un_move(move)
             return score
         value = -math.inf
@@ -185,11 +191,14 @@ class AIPlayerComplex(Player):
         for next_move in board.get_valid_moves():  # Yellows moves
             value = max(value, -self.evaluate(next_move, board, -beta, -alpha))
             alpha = max(alpha, value)
-            if alpha >= beta:
-                self._transposition_table[board.hash] = value
+            if value == 1:
                 board.un_move(move)
                 return value
-        self._transposition_table[board.hash] = value
+            if alpha >= beta:
+                # self._transposition_table[board.hash] = value
+                board.un_move(move)
+                return value
+        # self._transposition_table[board.hash] = value
         board.un_move(move)
         return value
 

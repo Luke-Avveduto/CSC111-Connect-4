@@ -18,8 +18,8 @@ class Board:
     move_number: int
     hash: int
     _valid_move_order: dict[int: int]
-    _red_hash_keys: np.array
-    _yellow_hash_keys: np.array
+    _red_hash_keys: list[list[int]]
+    _yellow_hash_keys: list[list[int]]
     _column_to_row: dict[int: int]
     _is_red_active: bool
     _valid_moves: list[int]
@@ -45,23 +45,21 @@ class Board:
         self._valid_move_order = {3: 0, 2: 1, 4:2, 5: 3, 1:4, 0:5, 6:6}
 
         self._is_red_active = red_active
-        self._column_to_row = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
-        self._valid_moves = [3, 2, 4, 5, 1, 0, 6]
+        self._column_to_row = {0: 0, 1: 0, 2: 2, 3: 6, 4: 0, 5: 0, 6: 0}
+        self._valid_moves = [2, 4, 5, 1, 0, 6]
         self._win_state = None
 
-        red_hash_keys = []
+        self._red_hash_keys = []
         with open('data/Zobrist_Hash_Keys/Zobrist_red_key.csv') as file:
             reader = csv.reader(file)
             for row in reader:
-                red_hash_keys.append(row)
-        self._red_hash_keys = np.array(red_hash_keys)
+                self._red_hash_keys.append([int(r) for r in row])
 
-        yellow_hash_keys = []
+        self._yellow_hash_keys = []
         with open('data/Zobrist_Hash_Keys/Zobrist_yellow_key.csv') as file:
             reader = csv.reader(file)
             for row in reader:
-                yellow_hash_keys.append(row)
-        self._yellow_hash_keys = np.array(yellow_hash_keys)
+                self._yellow_hash_keys.append([int(r) for r in row])
 
         self.hash = 0
 
@@ -109,7 +107,7 @@ class Board:
         if self._is_red_active:
             self.hash = self.hash ^ int(self._red_hash_keys[row][previous_move])
         else:
-            self.hash = self.hash ^ int(self._red_hash_keys[row][previous_move])
+            self.hash = self.hash ^ int(self._yellow_hash_keys[row][previous_move])
 
         # self._recalculate_valid_moves()
 
