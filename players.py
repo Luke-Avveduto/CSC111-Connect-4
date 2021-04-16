@@ -129,15 +129,15 @@ class AIPlayerComplex(Player):
     #   a win for the AI or not). The values for this dict are in the set {1, 0, -1} and its keys
     #   are hashes that correspond to a board. For more information on these hashes, see
     #   opening_book_gen.py
-    _transposition_table: dict[int:(int, str)]
+    _transposition_table: dict[int:(int, str, int)]
 
     def __init__(self, opening_book: str = 'data/opening_books/opening_book.csv') -> None:
         """Creates a new instance of the AIPlayerComplex class. Reads in the values in it's opening
         book.
         """
         self.is_human = False
-        self._transposition_table = opening_book_gen.load_opening_book(opening_book)
-        print(len(self._transposition_table))
+        # self._transposition_table = opening_book_gen.load_opening_book(opening_book)
+        self._transposition_table = {}
 
     def make_move(self, board: Board) -> int:
         """Returns a move that can be played in the game represented by the 'board' argument.
@@ -148,17 +148,14 @@ class AIPlayerComplex(Player):
         max_score = -math.inf
         best_move = None
         for move in board.get_valid_moves():
-            print(move)
-            score = self.evaluate(move, board, -math.inf, math.inf)
-            print(score)
+            score = self.evaluate(move, board, -math.inf, math.inf, 5)
             if score > max_score:
                 max_score = score
                 best_move = move
-            if score == 1:
-                return move
+        print(best_move)
         return best_move
 
-    def evaluate(self, move: int, board: Board, alpha: float, beta: float) -> int:
+    def evaluate(self, move: int, board: Board, alpha: float, beta: float, depth: int) -> float:
         """This function returns the evaluation of 'board' after the move 'move' is played. It does
         this via recursion, the negamax algorithm, alpha-beta pruning, and a transposition table.
 
@@ -174,10 +171,8 @@ class AIPlayerComplex(Player):
 
         board.make_move(move)
 
-        if board.hash in self._transposition_table:
-            print('move in table')
+        if board.hash in self._transposition_table and self._transposition_table[board.hash][2] >= depth:
             hash_value = board.hash
-            print(hash_value)
             board.un_move(move)
 
             evaluation = self._transposition_table[hash_value]
@@ -193,31 +188,38 @@ class AIPlayerComplex(Player):
                 return evaluation[0]
 
         score = board.get_winner()
-        if score is not None:
-            self._transposition_table[board.hash] = (score, 'exact')
+        if score is not None or depth == 0:
+            value = board.evaluate_score()
+            self._transposition_table[board.hash] = (value, 'exact', depth)
             board.un_move(move)
-            return score
-        value = -math.inf
+            return value
 
+        # if depth == 0:  # Need to force an evaluation
+        #     value = board.evaluate_score()
+        #     self._transposition_table[board.hash] = (value, 'exact', depth)
+        #     board.un_move(move)
+        #     return value
+
+        value = -math.inf
         for next_move in board.get_valid_moves():  # Yellows moves
-            value = max(value, -self.evaluate(next_move, board, -beta, -alpha))
+            value = max(value, -self.evaluate(next_move, board, -beta, -alpha, depth - 1))
             alpha = max(alpha, value)
             if alpha >= beta:
                 if value <= base_alpha:
-                    entry = (value, 'high')
+                    entry = (value, 'high', depth)
                 elif value >= beta:
-                    entry = (value, 'low')
+                    entry = (value, 'low', depth)
                 else:
-                    entry = (value, 'exact')
+                    entry = (value, 'exact', depth)
                 self._transposition_table[board.hash] = entry
                 board.un_move(move)
                 return value
         if value <= base_alpha:
-            entry = (value, 'high')
+            entry = (value, 'high', depth)
         elif value >= beta:
-            entry = (value, 'low')
+            entry = (value, 'low', depth)
         else:
-            entry = (value, 'exact')
+            entry = (value, 'exact', depth)
         self._transposition_table[board.hash] = entry
         board.un_move(move)
         return value
