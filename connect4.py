@@ -35,7 +35,6 @@ class Connect4Game:
     _board: Board
     _move_sequence: list[int]
 
-
     def __init__(self, board: list[list[int]] = None) -> None:
         """Initialize a new Connect4Game starting at the state provided by board.
 
@@ -121,3 +120,17 @@ def run_game(red: Player, yellow: Player, text: bool = False) -> list[int]:
             current_player = red
 
     return game.get_move_sequence()
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['typing', 'players', 'board'],  # the names (strs) of imported modules
+        'allowed-io': ['run_game'],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 100,
+        'disable': ['E1136']
+    })
+

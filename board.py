@@ -15,10 +15,10 @@ Copyright and Usage Information
 
 This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 """
-import numpy as np
-from scipy.signal import convolve2d
 from typing import Optional
 import csv
+import numpy as np
+from scipy.signal import convolve2d
 
 
 class Board:
@@ -159,7 +159,7 @@ class Board:
         self._is_red_active = not self._is_red_active
         self.move_number += 1
 
-    def un_move(self, previous_move) -> None:
+    def un_move(self, previous_move: int) -> None:
         """Return the board to the state before the previous move.
         Precondition:
             - previous_move must have been the last move played
@@ -230,7 +230,7 @@ class Board:
 
         return None
 
-    def evaluate_score(self, color) -> float:
+    def evaluate_score(self, color: int) -> float:
         """Calculates the score of the current state of the board using the
         following evaluation heuristic:
             (# of 3 in a rows the current player has)*100 + # of 2 in a rows the current player has
@@ -305,3 +305,16 @@ class Board:
             score = (num_three_red * 100 + num_two_red) - (num_three_yel * 100 + num_two_yel)
             return score * -1
 
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['numpy', 'scipy.signal', 'typing', 'csv'],  # the names (strs) of imported modules
+        'allowed-io': [],
+        # the names (strs) of functions that call print/open/input
+        'max-line-length': 100,
+        'disable': ['E1136']
+    })

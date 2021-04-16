@@ -24,7 +24,8 @@ import csv
 import math
 
 
-def save_opening_book(output: str, table: dict[int: (int, 'str', int)], original_depth: int) -> None:
+def save_opening_book(output: str, table: dict[int: (int, 'str', int)],
+                      original_depth: int) -> None:
     """Saves a transposition table into a csv file to be read from later. Different starting
     depths are incompatible with each other and so separate files are created. These files are
     indexed by adding '_' + str(original_depth) + '.csv' to the end of there name.
@@ -59,3 +60,16 @@ def load_opening_book(file: str) -> {int: (int, str)}:
                 value = int(row[1])
             opening_book[int(row[0])] = (value, row[2], int(row[3]))
     return opening_book
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['csv', 'math'],  # the names (strs) of imported modules
+        'allowed-io': ['load_opening_book', 'save_opening_book'],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 100,
+        'disable': ['E1136']
+    })

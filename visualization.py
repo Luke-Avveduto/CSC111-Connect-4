@@ -16,14 +16,14 @@ Copyright and Usage Information
 This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 """
 import tkinter
-from connect4 import Connect4Game
-from players import Player
+import time
 from typing import Optional
 import numpy as np
 import networkx as nx
-import time
 import matplotlib.pyplot as plt
+from connect4 import Connect4Game
 from connect4 import run_game
+from players import Player
 
 
 class VisualizedConnect4:
@@ -66,7 +66,7 @@ class VisualizedConnect4:
     is_replay: bool
 
     def __init__(self, window: tkinter.Tk, red: Player, yellow: Player,
-                 board: list[list[int]] = None, no_buttons: bool = None):
+                 board: list[list[int]] = None, no_buttons: bool = None) -> None:
         """Initialize a new visualized connect 4 game starting at the board state provided by board
 
         If board is None, the game starts with an empty board.
@@ -403,7 +403,7 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
                 return
 
 
-def run_game_visualized(red: Player, yellow: Player):
+def run_game_visualized(red: Player, yellow: Player) -> None:
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
     game = VisualizedConnect4(window, red, yellow)
@@ -553,3 +553,19 @@ def _tree_pos(g, root, width, vert_gap, vert_loc, xcentre, pos,) -> dict:
             pos = _tree_pos(g, subtree, dx, vert_gap, vert_loc - vert_gap, next_pos, pos)
 
     return pos
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['tkinter', 'connect4', 'players', 'typing',
+                          'numpy', 'networkx', 'time', 'matplotlib.pyplot'],
+        # the names (strs) of imported modules
+        'allowed-io': ['run_games'],
+        # the names (strs) of functions that call print/open/input
+        'max-line-length': 150,
+        'disable': ['E1136']
+    })

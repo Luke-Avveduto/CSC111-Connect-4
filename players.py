@@ -16,9 +16,9 @@ This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 """
 from typing import Optional
 import random
+import math
 from board import Board
 import opening_book_gen
-import math
 
 
 class Player:
@@ -29,7 +29,7 @@ class Player:
     #               human input to be played. False otherwise
     is_human: bool
 
-    def make_move(self, board: Board):
+    def make_move(self, board: Board) -> int:
         """Make a move in the current game"""
         raise NotImplementedError
 
@@ -63,7 +63,7 @@ class RandomPlayer(Player):
     """A connect 4 player that makes random valid moves.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.is_human = False
 
     def make_move(self, board: Board) -> int:
@@ -310,3 +310,18 @@ class AIPlayerComplex(Player):
         # Saves this value into the table so it doesn't need to be calculated again
         self._transposition_table[hash_value] = entry
         return best_move, value
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['random', 'math', 'typing', 'board', 'opening_book_gen'],
+        # the names (strs) of imported modules
+        'allowed-io': [],
+        # the names (strs) of functions that call print/open/input
+        'max-line-length': 150,
+        'disable': ['E1136', 'E9989', 'W1401']
+    })
