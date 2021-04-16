@@ -45,7 +45,8 @@ def ai_versus_random(depth: int = 6, num_games: int = 10,
 
     num_games is the number of games the players will play. Considering that the AI takes some
     time (varying amount depending on the depth) to make a move, running too many games will take
-    a long time. The function defaults to 10 games, and that is recommended.
+    a long time. The function defaults to 10 games, and that is recommended. The result of
+    running 100 games with default settings is included in the written report.
 
     depth is the number of moves the AI will look ahead, just like the function play_with_ai.
     Having a high depth does make the AI smarter, but high depth against a RandomPlayer is
