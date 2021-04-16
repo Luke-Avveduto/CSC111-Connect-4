@@ -168,15 +168,17 @@ class Board:
     def evaluate_score(self) -> float:
         """Calculates the score of the current state of the board
 
-        The score is positive when red is advantageous and negative when yellow is advantageous.
-        If the current state of the board has a winner, the score is positive or negative infinity
-        depending the winner of the game.
+        The score is calculated in favor of the player that is making the next move.
         """
+        color = 1
+        if not self._is_red_active:
+            color = -1
+
         winner = self.get_winner()
         if winner == 1:
-            return math.inf
+            return color * math.inf
         elif winner == -1:
-            return -math.inf
+            return color * -math.inf
         elif winner == 0:
             return 0
 
@@ -195,6 +197,6 @@ class Board:
             num_two_yel = np.count_nonzero(convolved_arr == 2)
 
         score = (num_three_red * 100 + num_two_red) - (num_three_yel * 100 + num_two_yel)
-        return score
+        return color * score
 
 

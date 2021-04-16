@@ -117,6 +117,7 @@ class Game:
 
             # If the current_player is HumanPlayer, take move as the click input
             # otherwise, call the make_move function on the respective player
+            print(self._board.evaluate_score())
             if current_player.is_human:
                 move = self._check_input()
             else:
@@ -304,6 +305,7 @@ def run_game(red: Player, yellow: Player):
     window = tkinter.Tk()
     game = Game(window, red, yellow)
     while game.is_replay:
+        print('hi')
         window = tkinter.Tk()
         game = Game(window, red, yellow)
 

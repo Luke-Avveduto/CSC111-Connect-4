@@ -145,10 +145,20 @@ class AIPlayerComplex(Player):
         created by playing one of the possible valid moves. The move that creates the board with the
         highest evaluation for the AI is the move that is eventually returned.
         """
+        for move in board.get_valid_moves():
+            board.make_move(move)
+            if board.get_winner() == 1:
+                board.un_move(move)
+                print('Winning Move: ' + str(move))
+                return move
+            else:
+                board.un_move(move)
+
         max_score = -math.inf
         best_move = None
         for move in board.get_valid_moves():
-            score = self.evaluate(move, board, -math.inf, math.inf, 5)
+            score = self.evaluate(move, board, -math.inf, math.inf, 8)
+            print(score)
             if score > max_score:
                 max_score = score
                 best_move = move
@@ -173,11 +183,11 @@ class AIPlayerComplex(Player):
 
         if board.hash in self._transposition_table and self._transposition_table[board.hash][2] >= depth:
             hash_value = board.hash
-            board.un_move(move)
 
             evaluation = self._transposition_table[hash_value]
 
             if evaluation[1] == 'exact':
+                board.un_move(move)
                 return evaluation[0]
             elif evaluation[1] == 'low':
                 alpha = max(alpha, evaluation[0])
@@ -185,6 +195,7 @@ class AIPlayerComplex(Player):
                 beta = min(beta, evaluation[0])
 
             if alpha >= beta:
+                board.un_move(move)
                 return evaluation[0]
 
         score = board.get_winner()
@@ -202,7 +213,7 @@ class AIPlayerComplex(Player):
 
         value = -math.inf
         for next_move in board.get_valid_moves():  # Yellows moves
-            value = max(value, -self.evaluate(next_move, board, -beta, -alpha, depth - 1))
+            value = max(value, self.evaluate(next_move, board, -beta, -alpha, depth - 1))
             alpha = max(alpha, value)
             if alpha >= beta:
                 if value <= base_alpha:
