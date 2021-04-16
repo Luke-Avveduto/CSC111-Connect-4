@@ -124,6 +124,8 @@ class AIPlayerComplex(Player):
             elif depth == 7:
                 path = 'data\opening_books\opening_book_7.csv'
                 self._transposition_table = opening_book_gen.load_opening_book(path)
+            else:
+                self._transposition_table = {}
         else:
             self._transposition_table = opening_book_gen.load_opening_book(opening_book)
 

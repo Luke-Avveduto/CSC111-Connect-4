@@ -241,69 +241,38 @@ class Board:
         Preconditions:
             - color in {-1, 1}
         """
-        if color == 1:
-            # We want to judge how good the board is for red
-            winner = self.get_winner()
-            if winner == 1:
-                return 10000
-            if winner == -1:
-                return -10000
-            if winner == 0:
-                return 0
+        # We want to judge how good the board is for color
+        winner = self.get_winner()
+        if winner == 1:
+            return 10000 * color
+        if winner == -1:
+            return -10000 * color
+        if winner == 0:
+            return 0
 
-            # Score the board for how good it is for red
-            # Positive if red is good
-            # Negative if red is bad/yellow is good
-            num_three_red, num_two_red = 0, 0
-            red_board = self.board_array.clip(min=0, max=1)
-            for kernel in self._detection_kernels_red:
-                # Similar to what is done in _check_win, it looks for the patterns of
-                # two in a rows and tree in a rows.
-                convolved_arr = convolve2d(red_board, kernel, mode='valid')
-                num_three_red += np.count_nonzero(convolved_arr == 3)
-                num_two_red += np.count_nonzero(convolved_arr == 2)
+        # Score the board for how good it is for red
+        # Positive if color is good
+        # Negative if color is bad
+        num_three_red, num_two_red = 0, 0
+        red_board = self.board_array.clip(min=0, max=1)
+        for kernel in self._detection_kernels_red:
+            # Similar to what is done in _check_win, it looks for the patterns of
+            # two in a rows and tree in a rows.
+            convolved_arr = convolve2d(red_board, kernel, mode='valid')
+            num_three_red += np.count_nonzero(convolved_arr == 3)
+            num_two_red += np.count_nonzero(convolved_arr == 2)
 
-            num_three_yel, num_two_yel = 0, 0
-            yellow_board = self.board_array.clip(min=-1, max=0)
-            for kernel in self._detection_kernels_yellow:
-                # Same as above but for yellow
-                convolved_arr = convolve2d(yellow_board, kernel, mode='valid')
-                num_three_yel += np.count_nonzero(convolved_arr == 3)
-                num_two_yel += np.count_nonzero(convolved_arr == 2)
+        num_three_yel, num_two_yel = 0, 0
+        yellow_board = self.board_array.clip(min=-1, max=0)
+        for kernel in self._detection_kernels_yellow:
+            # Same as above but for yellow
+            convolved_arr = convolve2d(yellow_board, kernel, mode='valid')
+            num_three_yel += np.count_nonzero(convolved_arr == 3)
+            num_two_yel += np.count_nonzero(convolved_arr == 2)
 
-            # This is our evaluation heuristic
-            score = (num_three_red * 100 + num_two_red) - (num_three_yel * 100 + num_two_yel)
-            return score
-
-        if color == -1:
-            # We want to judge how good the board is for yellow
-            winner = self.get_winner()
-            if winner == 1:
-                return -10000
-            if winner == -1:
-                return 10000
-            if winner == 0:
-                return 0
-
-            # Score the board for how good it is for yellow
-            # If yellow is good, a positive score
-            # If yellow is bad/red is good, negative score
-            num_three_red, num_two_red = 0, 0
-            red_board = self.board_array.clip(min=0, max=1)
-            for kernel in self._detection_kernels_red:
-                convolved_arr = convolve2d(red_board, kernel, mode='valid')
-                num_three_red += np.count_nonzero(convolved_arr == 3)
-                num_two_red += np.count_nonzero(convolved_arr == 2)
-
-            num_three_yel, num_two_yel = 0, 0
-            yellow_board = self.board_array.clip(min=-1, max=0)
-            for kernel in self._detection_kernels_yellow:
-                convolved_arr = convolve2d(yellow_board, kernel, mode='valid')
-                num_three_yel += np.count_nonzero(convolved_arr == 3)
-                num_two_yel += np.count_nonzero(convolved_arr == 2)
-
-            score = (num_three_red * 100 + num_two_red) - (num_three_yel * 100 + num_two_yel)
-            return score * -1
+        # This is our evaluation heuristic
+        score = (num_three_red * 100 + num_two_red) - (num_three_yel * 100 + num_two_yel)
+        return score * color
 
 
 if __name__ == '__main__':
