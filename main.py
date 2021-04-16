@@ -26,7 +26,7 @@ def play_with_ai(depth: int = 6) -> None:
     the depth to 6, and that is recommended. depth of 7 is also playable, but note that
     the AI will take approximately 40s per move, especially in the beginning stages of the game.
     """
-    red = AIPlayerComplex(depth)
+    red = AIPlayerComplex(depth=depth)
     yellow = HumanPlayer()
 
     run_game_visualized(red, yellow)
@@ -62,7 +62,7 @@ def ai_versus_random(depth: int = 6, num_games: int = 10,
     wins, number of ties, and the win rate of each player on the Python console. It is by default
     True and recommended to be True.
     """
-    red = AIPlayerComplex(depth)
+    red = AIPlayerComplex(depth=depth)
     yellow = RandomPlayer()
 
     run_games(red, yellow, num_games, visualize, show_stats)
