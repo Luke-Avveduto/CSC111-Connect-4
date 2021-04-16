@@ -90,7 +90,7 @@ def _get_board_hash(board: np.array, red_hash_keys: list[list[int]],
     return hash_value
 
 
-def load_opening_book(file: str) -> {int: int}:
+def load_opening_book(file: str) -> {int: (int, str)}:
     """Returns a dictionary (transposition table) that maps board hashes to their evaluation.
     Preconditions:
         - 'file' must be a path to a file created by 'create_opening_book'
@@ -99,5 +99,5 @@ def load_opening_book(file: str) -> {int: int}:
     with open(file) as csv_file:
         reader = csv.reader(csv_file)
         for row in reader:
-            opening_book[int(row[0])] = int(row[1])
+            opening_book[int(row[0])] = (int(row[1]), 'exact')
     return opening_book

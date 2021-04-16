@@ -20,6 +20,7 @@ from typing import Optional
 import numpy as np
 import networkx as nx
 import time
+import sys
 # import matplotlib.pyplot as plt
 # from test import hierarchy_pos
 
@@ -34,7 +35,7 @@ class Game:
     is_replay: bool
 
     def __init__(self, window, red: Player, yellow: Player, board: list[list[int]] = None, no_human: bool = False):
-
+        # sys.setrecursionlimit(500000000)
         self.window = window
         self.window.geometry('700x700')
         self.canvas = tkinter.Canvas(self.window, width=700, height=700)
@@ -246,27 +247,27 @@ def test():
         window = tkinter.Tk()
         game = Game(window, red, yellow, no_human=True)
 
-def run_games(red: Player, yellow: Player, n:int,
-              visualization: bool = False, show_stats: bool = False) -> nx.DiGraph:
-    """Runs n number of games between red and yellow and returns the game tree"""
-    if red is not HumanPlayer and yellow is not HumanPlayer:
-        no_human = True
-    else:
-        no_human = False
-
-    if visualization:
-        game_tree = nx.DiGraph()
-        game_tree.add_node('START')
-        for i in range(n):
-            window = tkinter.Tk()
-            game = Game(window, red, yellow, no_human=no_human)
-            game_moves = game.get_move_sequence()
-            add_game(game_tree, 'START', game_moves, i)
-        plt.title('draw_networkx')
-        pos = hierarchy_pos(game_tree, 'START')
-        nx.draw(game_tree, pos=pos, with_labels=True, arrows=True)
-        plt.show()
-        print(nx.is_tree(game_tree))
+# def run_games(red: Player, yellow: Player, n:int,
+#               visualization: bool = False, show_stats: bool = False) -> nx.DiGraph:
+#     """Runs n number of games between red and yellow and returns the game tree"""
+#     if red is not HumanPlayer and yellow is not HumanPlayer:
+#         no_human = True
+#     else:
+#         no_human = False
+#
+#     if visualization:
+#         game_tree = nx.DiGraph()
+#         game_tree.add_node('START')
+#         for i in range(n):
+#             window = tkinter.Tk()
+#             game = Game(window, red, yellow, no_human=no_human)
+#             game_moves = game.get_move_sequence()
+#             add_game(game_tree, 'START', game_moves, i)
+#         plt.title('draw_networkx')
+#         pos = hierarchy_pos(game_tree, 'START')
+#         nx.draw(game_tree, pos=pos, with_labels=True, arrows=True)
+#         plt.show()
+#         print(nx.is_tree(game_tree))
 
 
 TEST = [[0, 0, 0, 1, 0, 0, 0],
