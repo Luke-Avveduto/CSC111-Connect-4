@@ -133,12 +133,12 @@ class AIPlayerComplex(Player):
     _depth: int
     _transposition_table: dict[int:(int, str, int)]
 
-    def __init__(self, opening_book: str = 'data/opening_books/opening_book.csv') -> None:
+    def __init__(self, depth: int = 6, opening_book: str = 'data/opening_books/opening_book.csv') -> None:
         """Creates a new instance of the AIPlayerComplex class. Reads in the values in it's opening
         book.
         """
         self.is_human = False
-        # self._transposition_table = opening_book_gen.load_opening_book(opening_book)
+        self._depth = depth
         self._transposition_table = {}
 
     def make_move(self, board: Board) -> int:
