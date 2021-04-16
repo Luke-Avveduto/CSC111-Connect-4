@@ -12,7 +12,9 @@ This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 """
 from players import HumanPlayer
 from players import AIPlayerComplex
+from players import RandomPlayer
 from visualization import run_game_visualized
+from visualization import run_games
 
 def play_with_ai(depth: int = 6) -> None:
     """A function that runs a visualized game of Connect4 between AIPlayerComplex.
@@ -52,3 +54,7 @@ def ai_versus_random(depth: int = 5, num_games: int = 10,
     wins, number of ties, and the win rate of each player on the Python console. It is by default
     True and recommended to be True.
     """
+    red = AIPlayerComplex(depth)
+    yellow = RandomPlayer()
+
+    run_games(red, yellow, num_games, )

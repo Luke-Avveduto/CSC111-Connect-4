@@ -112,7 +112,7 @@ class AIPlayerComplex(Player):
         """
         self.is_human = False
         self._depth = depth
-        self._transposition_table = opening_book_gen.load_opening_book(opening_book)
+        self._transposition_table = {}
 
     def make_move(self, board: Board) -> int:
         """Returns a move that can be played in the game represented by the 'board' argument.
