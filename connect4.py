@@ -29,7 +29,6 @@ class Connect4Game:
     _board: Board
     _move_sequence: list[int]
 
-
     def __init__(self, board: list[list[int]] = None, red_active: bool = True) -> None:
         if board is not None:
             self._board = Board(python_board=board)
