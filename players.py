@@ -146,7 +146,7 @@ class AIPlayerComplex(Player):
         Move selection is done using the 'minimax' function which uses the minimax algorithm with
         a depth of self.depth to decide on the best move to play.
         """
-        move, evalutation = self.minimax(board, -math.inf, math.inf, 7, 1)
+        move, evalutation = self.minimax(board, -math.inf, math.inf, self._depth, 1)
         return move
 
     def minimax(self, board: Board, alpha: int, beta: int, depth: int, color: int) -> (int, int):
