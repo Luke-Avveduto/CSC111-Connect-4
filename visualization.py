@@ -117,7 +117,7 @@ class Game:
 
             # If the current_player is HumanPlayer, take move as the click input
             # otherwise, call the make_move function on the respective player
-            print(self._board.evaluate_score())
+            # print(self._board.evaluate_score())
             if current_player.is_human:
                 move = self._check_input()
             else:

@@ -145,27 +145,29 @@ class AIPlayerComplex(Player):
         created by playing one of the possible valid moves. The move that creates the board with the
         highest evaluation for the AI is the move that is eventually returned.
         """
-        for move in board.get_valid_moves():
-            board.make_move(move)
-            if board.get_winner() == 1:
-                board.un_move(move)
-                print('Winning Move: ' + str(move))
-                return move
-            else:
-                board.un_move(move)
+        move, evalutation = self.minimax(board, -math.inf, math.inf, 6, 1)
+        return move
+        # for move in board.get_valid_moves():
+        #     board.make_move(move)
+        #     if board.get_winner() == 1:
+        #         board.un_move(move)
+        #         print('Winning Move: ' + str(move))
+        #         return move
+        #     else:
+        #         board.un_move(move)
+        #
+        # max_score = -math.inf
+        # best_move = None
+        # for move in board.get_valid_moves():
+        #     score = self.evaluate(move, board, -math.inf, math.inf, 5, color=1)
+        #     print('The score for move:', move, 'is ', score)
+        #     if score > max_score:
+        #         max_score = score
+        #         best_move = move
+        # print('The best move was:', best_move)
+        # return best_move
 
-        max_score = -math.inf
-        best_move = None
-        for move in board.get_valid_moves():
-            score = self.evaluate(move, board, -math.inf, math.inf, 8)
-            print(score)
-            if score > max_score:
-                max_score = score
-                best_move = move
-        print(best_move)
-        return best_move
-
-    def evaluate(self, move: int, board: Board, alpha: float, beta: float, depth: int) -> float:
+    def evaluate(self, move: int, board: Board, alpha: float, beta: float, depth: int, color: int) -> float:
         """This function returns the evaluation of 'board' after the move 'move' is played. It does
         this via recursion, the negamax algorithm, alpha-beta pruning, and a transposition table.
 
@@ -200,7 +202,7 @@ class AIPlayerComplex(Player):
 
         score = board.get_winner()
         if score is not None or depth == 0:
-            value = board.evaluate_score()
+            value = board.evaluate_score(color)
             self._transposition_table[board.hash] = (value, 'exact', depth)
             board.un_move(move)
             return value
@@ -213,7 +215,7 @@ class AIPlayerComplex(Player):
 
         value = -math.inf
         for next_move in board.get_valid_moves():  # Yellows moves
-            value = max(value, self.evaluate(next_move, board, -beta, -alpha, depth - 1))
+            value = max(value, -self.evaluate(next_move, board, -beta, -alpha, depth - 1, -color))
             alpha = max(alpha, value)
             if alpha >= beta:
                 if value <= base_alpha:
@@ -235,20 +237,59 @@ class AIPlayerComplex(Player):
         board.un_move(move)
         return value
 
-    # def find_best_move(self, board: Board) -> int:
-    #     if board.move_number == 6*7:  # Checks for a draw
-    #         return 0
-    #
-    #     for move in board.get_valid_moves():
-    #         board.make_move(move)
-    #         winner = board.get_winner()
-    #         board.un_move(move)
-    #         if winner is not None:
-    #             return winner
-    #
-    #     for move in board.get_valid_moves():
-    #         board.make_move(move)
-    #         winner = -self.find_best_move(board)
+    def minimax(self, board, alpha, beta, depth, color) -> (int, int):
+        possible_moves = board.get_valid_moves()
 
+        for move in possible_moves:
+            board.make_move(move)
+            winner = board.get_winner()
+            if winner == 1:
+                board.un_move(move)
+                return move, 1000000
+            elif winner == -1:
+                board.un_move(move)
+                return move, -1000000
+            elif winner == 0:
+                board.un_move(move)
+                return move, 0
+            board.un_move(move)
 
+        if len(possible_moves) == 0 or depth == 0:
+            if depth == 0:
+                return None, board.evaluate_score(color)
+            else:
+                return None, 0  # Game is a draw
 
+        if color == 1:
+            value = -math.inf
+            best_move = 0  # Temp value THIS COULD BE A PROBLEM LATER
+            for move in possible_moves:
+                board.make_move(move)
+                score = self.minimax(board, alpha, beta, depth - 1, -1)[1]
+                if score > value:
+                    value = score
+                    best_move = move
+                alpha = max(value, alpha)
+                if alpha >= beta:
+                    board.un_move(move)
+                    return best_move, value
+                else:
+                    board.un_move(move)
+            return best_move, value
+
+        else:
+            value = math.inf
+            best_move = 0
+            for move in possible_moves:
+                board.make_move(move)
+                score = self.minimax(board, alpha, beta, depth-1, 1)[1]
+                if score < value:
+                    value = score
+                    best_move = move
+                beta = min(value, beta)
+                if alpha >= beta:
+                    board.un_move(move)
+                    return move, value
+                else:
+                    board.un_move(move)
+            return best_move, value
