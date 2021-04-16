@@ -17,7 +17,7 @@ from visualization import run_game_visualized
 from visualization import run_games
 
 def play_with_ai(depth: int = 6) -> None:
-    """A function that runs a visualized game of Connect4 between AIPlayerComplex.
+    """A function that runs a visualized game of Connect4 between AIPlayerComplex and HumanPlayer.
 
     depth is the number of moves the AI will look ahead to calculate the best move to be made.
     Higher depth will result in a smarter AI that makes better moves and harder to beat.
