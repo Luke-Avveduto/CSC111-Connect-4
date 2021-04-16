@@ -61,6 +61,10 @@ def ai_versus_random(depth: int = 6, num_games: int = 10,
     show_stats, when set as True, will show the number of games played, number of red and yellow
     wins, number of ties, and the win rate of each player on the Python console. It is by default
     True and recommended to be True.
+
+    If visualize is True and the game window is forcefully closed using the 'x' button while the
+    games are running, the function will stop and only return an instance of the game tree up to
+    the point of the force quit. No visualization of the game tree nor stats will be provided.
     """
     red = AIPlayerComplex(depth=depth)
     yellow = RandomPlayer()
