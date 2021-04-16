@@ -45,7 +45,7 @@ class Board:
     #   - _column_to_row: this is dict that maps a column to what row in the array a piece placed in
     #     that column in needs to be placed.
     #   - _is_red_active: this is a boolean that is True when it is red's turn and False when it is
-    #     yellow's turn.
+    #     yellow's turn. Red goes first every game, and so this is True by default. 
     #   - _win_state: this is 1 when the board is in a state where 4 has won, -1 if yellow has won,
     #     0 if it is draw, and None otherwise.
     #   - _detection_kernels_red: this is a list of numpy arrays where each numpy array encodes
