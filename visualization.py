@@ -20,14 +20,8 @@ from typing import Optional
 import numpy as np
 import networkx as nx
 import time
-<<<<<<< Updated upstream
-import sys
-# import matplotlib.pyplot as plt
-# from test import hierarchy_pos
-=======
 import matplotlib.pyplot as plt
 import random
->>>>>>> Stashed changes
 
 class Game:
     """
@@ -68,15 +62,6 @@ class Game:
     _exit_flag: bool
     is_replay: bool
 
-<<<<<<< Updated upstream
-    def __init__(self, window, red: Player, yellow: Player, board: list[list[int]] = None, no_human: bool = False):
-        # sys.setrecursionlimit(500000000)
-        self.window = window
-        self.window.geometry('700x700')
-        self.canvas = tkinter.Canvas(self.window, width=700, height=700)
-        self.canvas.pack()
-        self.exit_flag = False
-=======
     def __init__(self, window, red: Player, yellow: Player,
                  board: list[list[int]] = None, no_human: bool = False):
         """Initialize a new visualized connect 4 game starting at the board state provided by board
@@ -98,7 +83,6 @@ class Game:
 
         # self._exit_flag and self._is_replay are both False by default
         self._exit_flag = False
->>>>>>> Stashed changes
         self.is_replay = False
 
         # If a human is playing the game, create quit and replay buttons
@@ -318,10 +302,6 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
 def run_game(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
-<<<<<<< Updated upstream
-    # game = Game(window, red, yellow, TEST)
-=======
->>>>>>> Stashed changes
     game = Game(window, red, yellow)
     while game.is_replay:
         window = tkinter.Tk()
@@ -334,29 +314,6 @@ def test():
         window = tkinter.Tk()
         game = Game(window, red, yellow, no_human=True)
 
-<<<<<<< Updated upstream
-# def run_games(red: Player, yellow: Player, n:int,
-#               visualization: bool = False, show_stats: bool = False) -> nx.DiGraph:
-#     """Runs n number of games between red and yellow and returns the game tree"""
-#     if red is not HumanPlayer and yellow is not HumanPlayer:
-#         no_human = True
-#     else:
-#         no_human = False
-#
-#     if visualization:
-#         game_tree = nx.DiGraph()
-#         game_tree.add_node('START')
-#         for i in range(n):
-#             window = tkinter.Tk()
-#             game = Game(window, red, yellow, no_human=no_human)
-#             game_moves = game.get_move_sequence()
-#             add_game(game_tree, 'START', game_moves, i)
-#         plt.title('draw_networkx')
-#         pos = hierarchy_pos(game_tree, 'START')
-#         nx.draw(game_tree, pos=pos, with_labels=True, arrows=True)
-#         plt.show()
-#         print(nx.is_tree(game_tree))
-=======
 def run_games(red: Player, yellow: Player, n:int,
               visualization: bool = False, show_stats: bool = False) -> nx.DiGraph:
     """Runs n number of games between red and yellow and returns the game tree"""
@@ -470,7 +427,6 @@ def hierarchy_pos(G, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5)
         return pos
 
     return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
->>>>>>> Stashed changes
 
 
 TEST = [[0, 0, 0, 1, 0, 0, 0],
