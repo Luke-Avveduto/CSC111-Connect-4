@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 from connect4 import run_game
 
 
+
 class VisualizedConnect4:
     """
     A class that handles the visualization for the given Connect4Game.
@@ -86,7 +87,7 @@ class VisualizedConnect4:
             - all(len(board[col]) == 7 for col in range(len(board)))
         """
 
-        # Setting window size and intializing canvas
+        # Setting window size and initializing canvas
         self._window = window
         self._window.geometry('700x700')
         self._canvas = tkinter.Canvas(self._window, width=700, height=700)

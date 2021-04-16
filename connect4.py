@@ -35,6 +35,7 @@ class Connect4Game:
     _board: Board
     _move_sequence: list[int]
 
+
     def __init__(self, board: list[list[int]] = None) -> None:
         """Initialize a new Connect4Game starting at the state provided by board.
 
