@@ -6,7 +6,9 @@ Module Description
 This module contains a class that represents the game board of a Connect4Game. The board
 handles most operations needed to run the game, such as calculating valid moves, making moves,
 and checking for the winner. The board itself is represented in a 2d numpy array. The class
-also uses Zobrist Hashing to represent a unique state of the game board.
+also uses Zobrist Hashing to represent a unique state of the game board as a hash. This is done
+using the bitwise XOR operation and two list of keys. For more information, see
+opening_book_gen.py
 
 Copyright and Usage Information
 ===============================

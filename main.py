@@ -16,11 +16,12 @@ from players import RandomPlayer
 from visualization import run_game_visualized
 from visualization import run_games
 
+
 def play_with_ai(depth: int = 6) -> None:
     """A function that runs a visualized game of Connect4 between AIPlayerComplex.
 
     depth is the number of moves the AI will look ahead to calculate the best move to be made.
-    Higher depth will result in a smarter AI that makes better moves and harder to beat.
+    Higher depth will result in a smarter AI that makes better moves and is harder to beat.
     But, if depth is too high, the AI will take too long to play the move. The function defaults
     the depth to 6, and that is recommended. depth of 7 is also playable, but note that
     the AI will take approximately 40s per move, especially in the beginning stages of the game.
