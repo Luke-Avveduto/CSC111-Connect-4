@@ -114,10 +114,18 @@ class AIPlayerComplex(Player):
         self.is_human = False
         self._depth = depth
 
-        if opening_book is not None:
-            self._transposition_table = opening_book_gen.load_opening_book(opening_book)
+        if opening_book is None:
+            if depth == 5:
+                path = 'data\opening_books\opening_book_5.csv'
+                self._transposition_table = opening_book_gen.load_opening_book(path)
+            elif depth == 6:
+                path = 'data\opening_books\opening_book_6.csv'
+                self._transposition_table = opening_book_gen.load_opening_book(path)
+            elif depth == 7:
+                path = 'data\opening_books\opening_book_7.csv'
+                self._transposition_table = opening_book_gen.load_opening_book(path)
         else:
-            self._transposition_table = {}
+            self._transposition_table = opening_book_gen.load_opening_book(opening_book)
 
     def make_move(self, board: Board) -> int:
         """Returns a move that can be played in the game represented by the 'board' argument.

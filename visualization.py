@@ -26,7 +26,6 @@ import matplotlib.pyplot as plt
 from connect4 import run_game
 
 
-
 class VisualizedConnect4:
     """
     A class that handles the visualization for the given Connect4Game.

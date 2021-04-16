@@ -21,18 +21,19 @@ Copyright and Usage Information
 This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 """
 import csv
+import math
 
 
 def save_opening_book(output: str, table: dict[int: (int, 'str', int)], original_depth: int) -> None:
     """Saves a transposition table into a csv file to be read from later. Different starting
     depths are incompatible with each other and so separate files are created. These files are
-    indexed by adding '_' + str(original_depth) to the end of there name.
+    indexed by adding '_' + str(original_depth) + '.csv' to the end of there name.
 
     Preconditions:
         - original_depth >= 0
         - table must be a transposition table produced by AIPlayerComplex
     """
-    with open(output + '_' + str(original_depth), 'w', newline='') as csv_file:
+    with open(output + '_' + str(original_depth) + '.csv', 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
 
         for board in table:
@@ -50,5 +51,11 @@ def load_opening_book(file: str) -> {int: (int, str)}:
     with open(file) as csv_file:
         reader = csv.reader(csv_file)
         for row in reader:
-            opening_book[int(row[0])] = (int(row[1]), row[2], int(row[3]))
+            if row[1] == 'inf':
+                value = math.inf
+            elif row[1] == '-inf':
+                value = -math.inf
+            else:
+                value = int(row[1])
+            opening_book[int(row[0])] = (value, row[2], int(row[3]))
     return opening_book
