@@ -151,6 +151,7 @@ class VisualizedConnect4:
                 self._canvas.update()
                 move = current_player.make_move(self._game.get_game_board())
                 self._canvas.delete(text)
+                self._window.update()
 
             if move is None:
                 break
@@ -164,9 +165,8 @@ class VisualizedConnect4:
                 else:
                     move = current_player.make_move(self._game.get_game_board())
 
-            self._canvas.delete(text)
-
             if not self._exit_flag:
+                self._canvas.delete(text)
                 self._game.make_move(move)
 
             # switch players every turn
