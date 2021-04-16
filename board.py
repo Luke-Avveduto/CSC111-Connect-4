@@ -1,9 +1,22 @@
+"""CSC111 Final Project: Exploring Using Graph Based Data Structures to Implement a Connect 4 AI
+
+Module Description
+==================
+
+This module contains a class that represents the game board of a Connect4Game. The board
+handles most operations needed to run the game, such as calculating valid moves, making moves,
+and checking for the winner. The board itself is represented in a 2d numpy array. The class
+also uses Zobrist Hashing to represent a unique state of the game board.
+
+Copyright and Usage Information
+===============================
+
+This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
+"""
 import numpy as np
 from scipy.signal import convolve2d
 from typing import Optional
 import csv
-import math
-
 
 GAME_BOARD = [[0, 0, 0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0, 0, 0],

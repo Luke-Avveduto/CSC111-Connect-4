@@ -3,7 +3,12 @@
 Module Description
 ==================
 
-This module contains classes and functions that visualize a game of Connect 4.
+This module contains classes and functions that visualize a game of Connect 4. The games are
+visualized through tkinter, which is a python library that allows for the creation of GUI.
+This module also contains some functions that generate a game tree based on previous
+games of Connect4 and visualizes the completed game tree. The game tree is created using
+the library networkx, which has a built-in tree implementation and its visualization. Matplotlib
+is also used in conjunction with networkx to visualize the tree.
 
 Copyright and Usage Information
 ===============================
@@ -13,18 +18,15 @@ This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 import tkinter
 from connect4 import Connect4Game
 from players import Player
-from players import HumanPlayer
-from players import AIPlayerComplex
-from players import RandomPlayer
 from typing import Optional
 import numpy as np
 import networkx as nx
 import time
 import matplotlib.pyplot as plt
-import random
 from connect4 import run_game
 
-class Game:
+
+class VisualizedConnect4:
     """
     A class that handles the visualization for the given Connect4Game.
 
@@ -63,12 +65,20 @@ class Game:
     _exit_flag: bool
     is_replay: bool
 
-    def __init__(self, window, red: Player, yellow: Player,
+    def __init__(self, window: tkinter.Tk, red: Player, yellow: Player,
                  board: list[list[int]] = None, no_buttons: bool = None):
         """Initialize a new visualized connect 4 game starting at the board state provided by board
 
         If board is None, the game starts with an empty board.
         If no_human is True, both players, red and yellow, are not instances if HumanPlayer
+
+        Instance Attributes:
+            - window: an instance if tkinter.Tk
+            - red: the red player of the game
+            - yellow: the yellow player of the game
+            - board: the starting position of the game
+            - no_button: boolean indicating whether the visualization should contain
+                         replay and quit buttons
 
         Preconditions:
             - If no_human is True, red and yellow are NOT instances of HumanPlayer
@@ -86,6 +96,7 @@ class Game:
         self._exit_flag = False
         self.is_replay = False
 
+        # check whether a human is playing the game
         if no_buttons is None:
             no_human = not red.is_human and not yellow.is_human
         else:
@@ -128,12 +139,12 @@ class Game:
             # print(self._board.evaluate_score())
             if current_player.is_human:
                 text = self._canvas.create_text(100, 20, font='Times 20 italic bold',
-                                               text="Human's Turn")
+                                                text="Human's Turn")
                 self._canvas.update()
                 move = self._check_input()
             else:
                 text = self._canvas.create_text(100, 20, font='Times 20 italic bold',
-                                         text="AI is thinking")
+                                                text="AI is thinking")
                 self._canvas.update()
                 move = current_player.make_move(self._game.get_game_board())
                 self._canvas.delete(text)
@@ -141,6 +152,7 @@ class Game:
             if move is None:
                 break
 
+            # Do not make move until the received move is valid
             while move not in self._game.get_valid_moves():
                 if self._exit_flag:
                     break
@@ -154,6 +166,7 @@ class Game:
             if not self._exit_flag:
                 self._game.make_move(move)
 
+            # switch players every turn
             if current_player is red:
                 current_player = yellow
             else:
@@ -166,12 +179,14 @@ class Game:
             else:
                 break
 
+            # add a delay if no human is playing the game
             if no_human:
                 time.sleep(.1)
 
         if not self._exit_flag:
             self._update_board()
 
+        # indicate winner
         if self._game.get_winner() == 1:
             self._canvas.create_text(100, 20, font='Times 20 italic bold',
                                      text="Red Wins")
@@ -185,18 +200,32 @@ class Game:
                                      text="Tie")
             self._canvas.update()
 
+        # keep the win screen up for a little longer
         if no_human:
             time.sleep(.8)
             self._window.destroy()
         elif not self._exit_flag:
             self._window.mainloop()
 
-
     def get_move_sequence(self) -> list[int]:
+        """A function that returns all the moves that have been made in the game
+
+        The last item in the list indicates the winner of the game
+        1 if red has won the game
+        -1 if yellow has won the game
+        0 if the game was a tie
+
+        Precondition:
+            - self._game.get_winner is not None
+        """
         return self._game.get_move_sequence()
 
     def _check_input(self) -> Optional[int]:
+        """A function that returns the human input (click) made on the column
 
+        Returns the number of the column that was clicked on
+        Returns None if no click has been made
+        """
         while self._human_move is None:
             if self._exit_flag:
                 return None
@@ -207,24 +236,24 @@ class Game:
         return move_copy
 
     def _draw_board(self) -> None:
-
+        """A function that draws the game board on the canvas"""
         col1 = self._canvas.create_rectangle(0, 100, 100, 700, fill='#9e9e9e')
-        self._canvas.tag_bind(col1, '<Button-1>', self.oncol1click)
+        self._canvas.tag_bind(col1, '<Button-1>', self.on_col1_click)
         col2 = self._canvas.create_rectangle(100, 100, 200, 700, fill='#666666')
-        self._canvas.tag_bind(col2, '<Button-1>', self.oncol2click)
+        self._canvas.tag_bind(col2, '<Button-1>', self.on_col2_click)
         col3 = self._canvas.create_rectangle(200, 100, 300, 700, fill='#9e9e9e')
-        self._canvas.tag_bind(col3, '<Button-1>', self.oncol3click)
+        self._canvas.tag_bind(col3, '<Button-1>', self.on_col3_click)
         col4 = self._canvas.create_rectangle(300, 100, 400, 700, fill='#666666')
-        self._canvas.tag_bind(col4, '<Button-1>', self.oncol4click)
+        self._canvas.tag_bind(col4, '<Button-1>', self.on_col4_click)
         col5 = self._canvas.create_rectangle(400, 100, 500, 700, fill='#9e9e9e')
-        self._canvas.tag_bind(col5, '<Button-1>', self.oncol5click)
+        self._canvas.tag_bind(col5, '<Button-1>', self.on_col5_click)
         col6 = self._canvas.create_rectangle(500, 100, 600, 700, fill='#666666')
-        self._canvas.tag_bind(col6, '<Button-1>', self.oncol6click)
+        self._canvas.tag_bind(col6, '<Button-1>', self.on_col6_click)
         col7 = self._canvas.create_rectangle(600, 100, 700, 700, fill='#9e9e9e')
-        self._canvas.tag_bind(col7, '<Button-1>', self.oncol7click)
+        self._canvas.tag_bind(col7, '<Button-1>', self.on_col7_click)
 
     def _update_board(self) -> None:
-
+        """A function that updates the canvas based on the current state of the game"""
         for i in range(len(self._board.board_array)):
             for j in range(len(self._board.board_array[i])):
                 if self._board.board_array[i][j] == 1:
@@ -235,51 +264,97 @@ class Game:
                                              100 + (600 - i * 100), fil='yellow')
 
     def quit(self) -> None:
+        """A function that exits the game.
+        Triggered by the activation of the quit button
+        """
         self._exit_flag = True
         self._window.quit()
         self._window.destroy()
 
     def replay(self) -> None:
+        """A function that exits the game and allows for replay of a fresh game
+        triggered by the activation of the replay button
+        """
         self._exit_flag = True
         self.is_replay = True
         self._window.quit()
         self._window.destroy()
 
-    def oncol1click(self, event) -> None:
+    def on_col1_click(self, event) -> None:
+        """A function that records the click input of the human
+        Triggered by the click of the first column on the game board
+        """
         self._human_move = 0
 
-    def oncol2click(self, event) -> None:
+    def on_col2_click(self, event) -> None:
+        """A function that records the click input of the human
+        Triggered by the click of the second column on the game board
+        """
         self._human_move = 1
 
-    def oncol3click(self, event) -> None:
+    def on_col3_click(self, event) -> None:
+        """A function that records the click input of the human
+        Triggered by the click of the third column on the game board
+        """
         self._human_move = 2
 
-    def oncol4click(self, event) -> None:
+    def on_col4_click(self, event) -> None:
+        """A function that records the click input of the human
+        Triggered by the click of the fourth column on the game board
+        """
         self._human_move = 3
 
-    def oncol5click(self, event) -> None:
+    def on_col5_click(self, event) -> None:
+        """A function that records the click input of the human
+        Triggered by the click of the fifth column on the game board
+        """
         self._human_move = 4
 
-    def oncol6click(self, event) -> None:
+    def on_col6_click(self, event) -> None:
+        """A function that records the click input of the human
+        Triggered by the click of the sixth column on the game board
+        """
         self._human_move = 5
 
-    def oncol7click(self, event) -> None:
+    def on_col7_click(self, event) -> None:
+        """A function that records the click input of the human
+        Triggered by the click of the seventh column on the game board
+        """
         self._human_move = 6
 
 
 def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> None:
+    """A function that adds a sequences of moves that were made in a Connect4Game
 
-    prev_variant = -1000
+    If a move sequence already exists in the tree, no branches will be added.
+    Branches are only added when there is a variation from the existing branch
 
+    Instance Attributes:
+        - game_tree: tree in which the move sequence will be added to
+        - root: the value of the top-most level node in the tree
+        - game_sequence: the list of integers that represent the moves that were made in the game
+                         the last entry in the list indicates the winner
+        - variant: integer indicating the number of the game to be added to the tree
+
+    Preconditions:
+        - nx.is_tree(game_tree)
+        - root in game_tree.nodes
+        - the game tree contains variant number of move sequences
+    """
+
+    prev_variant = None
+
+    # searching for the first element in the sequence that is not already in the tree
     for i in range(len(game_sequence)):
         if any((game_sequence[i], i, v) in game_tree for v in range(variant)):
             for v in range(variant):
                 if (game_sequence[i], i, v) in game_tree:
                     prev_variant = v
         else:
+            # if the first branching move is found and is 0
             if i == 0:
                 game_tree.add_node((game_sequence[i], i, variant))
-                game_tree.add_edge('START', (game_sequence[i], i, variant))
+                game_tree.add_edge(root, (game_sequence[i], i, variant))
                 for j in range(i + 1, len(game_sequence)):
                     if j == len(game_sequence) - 1:
                         if game_sequence[j] == 1:
@@ -299,6 +374,7 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
                         game_tree.add_edge((game_sequence[j - 1], j - 1, variant),
                                            (game_sequence[j], j, variant))
                 return
+            # if the move sequence isn't already in game_tree
             elif i != len(game_sequence) - 1:
                 game_tree.add_node((game_sequence[i], i, variant))
                 game_tree.add_edge((game_sequence[i - 1], i - 1, prev_variant),
@@ -327,16 +403,36 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
 def run_game_visualized(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
-    game = Game(window, red, yellow)
+    game = VisualizedConnect4(window, red, yellow)
     while game.is_replay:
         window = tkinter.Tk()
-        game = Game(window, red, yellow)
+        game = VisualizedConnect4(window, red, yellow)
 
 
-def run_games(red: Player, yellow: Player, n:int,
+def run_games(red: Player, yellow: Player, n: int,
               visualization: bool = False, show_stats: bool = False) -> nx.DiGraph:
-    """Runs n number of games between red and yellow and returns the game tree"""
+    """Runs n number of games of Connect4 between red and yellow,
+    then visualizes and returns the game tree created by the move sequences
 
+    If visualization is True, each game will be visualized using the VisualizedConnect4 class.
+    The visualization will be slowed down each move and on the win screen to allow for
+    better viewing experience. This will slow the function down significantly. When running
+    a large number of games, it is recommended to set visualization to False.
+    Also, if one of the players is a HumanPlayer, it is recommended to set visualization to True
+    or otherwise the player input will be taken through the python console as well as
+    the visualization of the game itself at every stage.
+
+    Instance Attributes:
+        - red: the red player of the Connect4 games
+        - yellow: the yellow player of the Connect4 games
+        - n: number of Connect4 games to run
+        - visualization: boolean indicating whether each game will be visualized or not
+        - show_stats: boolean indicating whether to show the stats of the games
+
+    Preconditions:
+        - n >= 0
+    """
+    # initialize game tree
     game_tree = nx.DiGraph()
     game_tree.add_node('START')
     num_red_wins = 0
@@ -345,7 +441,7 @@ def run_games(red: Player, yellow: Player, n:int,
     if visualization:
         for i in range(n):
             window = tkinter.Tk()
-            game = Game(window, red, yellow, no_buttons=True)
+            game = VisualizedConnect4(window, red, yellow, no_buttons=True)
             game_moves = game.get_move_sequence()
             if game_moves[len(game_moves) - 1] == 1:
                 num_red_wins += 1
@@ -416,8 +512,8 @@ def run_games(red: Player, yellow: Player, n:int,
     return game_tree
 
 
-def tree_pos(G: nx.DiGraph, root, width: float = 1.0, vert_gap: float = 0.2,
-                   vert_loc: float = 0, xcentre: float = 0.5) -> dict:
+def tree_pos(g: nx.DiGraph, root, width: float = 1.0, vert_gap: float = 0.2,
+             vert_loc: float = 0, xcentre: float = 0.5) -> dict:
     """A function that calculates the position of each node in the tree G when it is visualized.
     Returns the position of each node as a dictionary.
 
@@ -433,10 +529,10 @@ def tree_pos(G: nx.DiGraph, root, width: float = 1.0, vert_gap: float = 0.2,
         - nx.is_tree(G)
         - root is an existing value in the tree
     """
-    return _tree_pos(G, root, width, vert_gap, vert_loc, xcentre, None)
+    return _tree_pos(g, root, width, vert_gap, vert_loc, xcentre, None)
 
 
-def _tree_pos(G, root, width, vert_gap, vert_loc, xcentre, pos,) -> dict:
+def _tree_pos(g, root, width, vert_gap, vert_loc, xcentre, pos,) -> dict:
     """Recursive helper function for tree_pos that returns a dictionary of node positions"""
 
     if pos is None:
@@ -444,14 +540,13 @@ def _tree_pos(G, root, width, vert_gap, vert_loc, xcentre, pos,) -> dict:
     else:
         pos[root] = (xcentre, vert_loc)
 
-    subtrees = list(G.neighbors(root))
+    subtrees = list(g.neighbors(root))
 
     if len(subtrees) != 0:
         dx = width / len(subtrees)
         next_pos = xcentre - width / 2 - dx / 2
         for subtree in subtrees:
             next_pos += dx
-            pos = _tree_pos(G, subtree, dx, vert_gap, vert_loc - vert_gap, next_pos, pos)
+            pos = _tree_pos(g, subtree, dx, vert_gap, vert_loc - vert_gap, next_pos, pos)
 
     return pos
-

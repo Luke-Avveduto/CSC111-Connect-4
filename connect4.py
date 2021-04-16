@@ -3,7 +3,9 @@
 Module Description
 ==================
 
-This module contains classes and functions that run a game of connect 4.
+This module contains classes and functions that run a game of connect 4. The visualization
+of the game is done through the python console. Specifically, if two non-human players are
+playing the game, the game will not be visualized.
 
 Copyright and Usage Information
 ===============================
@@ -14,23 +16,40 @@ from __future__ import annotations
 
 from typing import Optional
 from players import Player
-import tkinter
-import numpy as np
-from scipy.signal import convolve2d
 from board import Board
-import networkx as nx
-
-BOARD_ROW = 6
-BOARD_COLUMN = 7
 
 
 class Connect4Game:
-    """A class representing a state of a game of Connect 4"""
+    """A class representing a state of a game of Connect 4
+
+    Representation Invariants:
+        - self._board is a valid instance of the Board class
+    """
+    # Private Instance Attributes
+    #   - _board:
+    #       Instance of the class Board that represents the game board of a connect 4 game
+    #   - _move_sequence:
+    #       List of moves that have been made up to the current state of the game. The last
+    #       entry in the list is a 1 if red has won the game, -1 if yellow has won the game
+    #       and 0 if the game was a tie.
     _board: Board
     _move_sequence: list[int]
 
+    def __init__(self, board: list[list[int]] = None) -> None:
+        """Initialize a new Connect4Game starting at the state provided by board.
 
-    def __init__(self, board: list[list[int]] = None, red_active: bool = True) -> None:
+         If board is None, start a fresh game of Connect 4
+
+         Instance Attributes:
+            - board: a 6 x 7 nested list that contains the state of a connect 4 game
+
+        Precondition:
+            - len(board) == 6
+            - all(len(board[col]) == 7 for col in range(len(board)))
+            - state of board follows the conventions of connect 4
+              (ex. no suspended chips and
+              equal number of moves have been made by each player on every turn)
+         """
         if board is not None:
             self._board = Board(python_board=board)
         else:
@@ -66,14 +85,19 @@ class Connect4Game:
 
         If the game is a tie, return 0
         If red has won the game, return 1
-        If yellow has won the game, return 2
+        If yellow has won the game, return -1
         If the game does not have a winner yet, return None
         """
         return self._board.get_winner()
 
 
 def run_game(red: Player, yellow: Player, text: bool = False) -> list[int]:
-    """Run a Connect 4 game between the two players"""
+    """Run a Connect 4 game between the two players.
+
+    If text is true, the game will be visualized using the python console.
+    If one the players is a HumanPlayer, the input will be taken through the python console
+    It is recommended to set text to True if one of the players is a HumanPlayer
+    """
     game = Connect4Game()
 
     current_player = red
