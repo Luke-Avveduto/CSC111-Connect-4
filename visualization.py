@@ -204,11 +204,15 @@ class VisualizedConnect4:
             self._canvas.update()
 
         # keep the win screen up for a little longer
-        if no_human:
+        if no_human and not self._exit_flag:
             time.sleep(.8)
             self._window.destroy()
         elif not self._exit_flag:
             self._window.mainloop()
+
+    def get_exit_flag(self) -> bool:
+        """A function that returns whether the game window was closed or not"""
+        return self._exit_flag
 
     def get_move_sequence(self) -> list[int]:
         """A function that returns all the moves that have been made in the game
@@ -441,10 +445,16 @@ def run_games(red: Player, yellow: Player, n: int,
     num_red_wins = 0
     num_yellow_wins = 0
 
+    exited = False
+
     if visualization:
         for i in range(n):
-            window = tkinter.Tk()
-            game = VisualizedConnect4(window, red, yellow, no_buttons=True)
+            if not exited:
+                window = tkinter.Tk()
+                game = VisualizedConnect4(window, red, yellow, no_buttons=True)
+                exited = game.get_exit_flag()
+            else:
+                return game_tree
             game_moves = game.get_move_sequence()
             if game_moves[len(game_moves) - 1] == 1:
                 num_red_wins += 1
