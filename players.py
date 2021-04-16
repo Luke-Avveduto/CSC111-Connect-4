@@ -175,7 +175,9 @@ class AIPlayerComplex(Player):
         board.make_move(move)
 
         if board.hash in self._transposition_table:
+            print('move in table')
             hash_value = board.hash
+            print(hash_value)
             board.un_move(move)
 
             evaluation = self._transposition_table[hash_value]
