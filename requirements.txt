@@ -1,0 +1,11 @@
+# Exploring Using Graph Based Data Structures to Implement a Connect Four Self-Learning AI:
+#   Python librarys used in this project
+
+# Data generation and processing
+numpy~=1.20.1
+scipy~=1.6.1
+networkx~=2.5
+
+# Visualization
+matplotlib~=3.4.1
+
