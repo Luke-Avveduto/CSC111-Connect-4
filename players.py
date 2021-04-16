@@ -111,24 +111,29 @@ class AIPlayerBasic(Player):
 
 
 class AIPlayerComplex(Player):
-    """An implementation of the ADT Player that uses a combination of the negamax algorithm,
-    alpha-beta pruning, a transposition table, and an opening book to in order to always play a
-    winning move. In order to keep the running time down, this implementation only solves the game
-    'weakly' meaning that while it will win 100% of the time since it goes first every game,
-    (as connect 4 is solved game with player 1 being the winner), it will not always win the fewest
-    number of turns.
+    """An implementation of the abstract class Player that uses a combination of the
+    minimax algorithm, alpha-beta pruning, and a transposition table in order to chose what move it
+    will make. This implementation works well with depth between 5 and 7. While it will technically
+    work with any depth level, values below 5 will not produce that accurate moves while values
+    above 7 will result in the AI taking several minutes to make a move, especially in the beginning
+    of the game, so use at your own risk.
 
-    Details on the negamax algorithm can be found here: https://en.wikipedia.org/wiki/Negamax
+    Details on the minimax algorithm can be found here: https://en.wikipedia.org/wiki/Minimax
     Details on transposition tables can be found here: https://en.wikipedia.org/wiki/Transposition_table
 
     Representation Invariants:
-        - all({self._transposition_table[key] in {1, 0, -1} for key in self._transposition_table[key]})
+        - self._depth >= 0
+        - all({self._transposition_table[1] in {'exact', 'high', 'low'} for key in self._transposition_table})
+        - all({self._depth >= self._transposition_table[2] >= 0 for key in self._transposition_table})
     """
     # Private Instance Attributes:
-    #   - _transposition_table: This is a dict that maps boards to their evaluation (whether it is
-    #   a win for the AI or not). The values for this dict are in the set {1, 0, -1} and its keys
-    #   are hashes that correspond to a board. For more information on these hashes, see
-    #   opening_book_gen.py
+    #   - _transposition_table: This is a dict that maps boards to their evaluation by the minimax
+    #   algorithm. In particular, it doesn't actually map Board objects to evaluations, instead each
+    #   has a hash and that is mapped to a tuple the contains the evaluation of that board with the
+    #   by the minimax algorithm, a string that says whether the value is exact, an upperbound, or
+    #   a lower bound, and finally the depth those values were calculated at For more information on
+    #   these hashes, see opening_book_gen.py
+    _depth: int
     _transposition_table: dict[int:(int, str, int)]
 
     def __init__(self, opening_book: str = 'data/opening_books/opening_book.csv') -> None:
@@ -141,103 +146,24 @@ class AIPlayerComplex(Player):
 
     def make_move(self, board: Board) -> int:
         """Returns a move that can be played in the game represented by the 'board' argument.
-        Move selection is done using the 'evaluate' function which evaluates the potential board
-        created by playing one of the possible valid moves. The move that creates the board with the
-        highest evaluation for the AI is the move that is eventually returned.
+        Move selection is done using the 'minimax' function which uses the minimax algorithm with
+        a depth of self.depth to decide on the best move to play.
         """
-        move, evalutation = self.minimax(board, -math.inf, math.inf, 6, 1)
+        move, evalutation = self.minimax(board, -math.inf, math.inf, 7, 1)
         return move
-        # for move in board.get_valid_moves():
-        #     board.make_move(move)
-        #     if board.get_winner() == 1:
-        #         board.un_move(move)
-        #         print('Winning Move: ' + str(move))
-        #         return move
-        #     else:
-        #         board.un_move(move)
-        #
-        # max_score = -math.inf
-        # best_move = None
-        # for move in board.get_valid_moves():
-        #     score = self.evaluate(move, board, -math.inf, math.inf, 5, color=1)
-        #     print('The score for move:', move, 'is ', score)
-        #     if score > max_score:
-        #         max_score = score
-        #         best_move = move
-        # print('The best move was:', best_move)
-        # return best_move
 
-    def evaluate(self, move: int, board: Board, alpha: float, beta: float, depth: int, color: int) -> float:
-        """This function returns the evaluation of 'board' after the move 'move' is played. It does
-        this via recursion, the negamax algorithm, alpha-beta pruning, and a transposition table.
-
-        Board is NOT mutated when this function is run.
-        self._transposition_table CAN be mutated. If it encounters a board that does not have an
-        entry in self._transposition_table, the hash of the board and the evaluation will be added
-        as an entry.
+    def minimax(self, board: Board, alpha: int, beta: int, depth: int, color: int) -> (int, int):
+        """This function implements the minimax algorithm with alpha-beta pruning and a
+        transposition table with a depth of 'depth'. This algorithm uses recursion to explore the
+        tree like structure of all the possible games that could happen from the current 'board'
+        state and will eventually return a tuple of ints containing the best move in for the player
+        with color 'color' and the evaluation of how good the resulting position will be
+        for the player.
 
         Preconditions:
-            - move in board.get_valid_moves()
+            - depth >= 0
+            - color in {-1, 1}
         """
-        base_alpha = alpha
-
-        board.make_move(move)
-
-        if board.hash in self._transposition_table and self._transposition_table[board.hash][2] >= depth:
-            hash_value = board.hash
-
-            evaluation = self._transposition_table[hash_value]
-
-            if evaluation[1] == 'exact':
-                board.un_move(move)
-                return evaluation[0]
-            elif evaluation[1] == 'low':
-                alpha = max(alpha, evaluation[0])
-            elif evaluation[1] == 'high':
-                beta = min(beta, evaluation[0])
-
-            if alpha >= beta:
-                board.un_move(move)
-                return evaluation[0]
-
-        score = board.get_winner()
-        if score is not None or depth == 0:
-            value = board.evaluate_score(color)
-            self._transposition_table[board.hash] = (value, 'exact', depth)
-            board.un_move(move)
-            return value
-
-        # if depth == 0:  # Need to force an evaluation
-        #     value = board.evaluate_score()
-        #     self._transposition_table[board.hash] = (value, 'exact', depth)
-        #     board.un_move(move)
-        #     return value
-
-        value = -math.inf
-        for next_move in board.get_valid_moves():  # Yellows moves
-            value = max(value, -self.evaluate(next_move, board, -beta, -alpha, depth - 1, -color))
-            alpha = max(alpha, value)
-            if alpha >= beta:
-                if value <= base_alpha:
-                    entry = (value, 'high', depth)
-                elif value >= beta:
-                    entry = (value, 'low', depth)
-                else:
-                    entry = (value, 'exact', depth)
-                self._transposition_table[board.hash] = entry
-                board.un_move(move)
-                return value
-        if value <= base_alpha:
-            entry = (value, 'high', depth)
-        elif value >= beta:
-            entry = (value, 'low', depth)
-        else:
-            entry = (value, 'exact', depth)
-        self._transposition_table[board.hash] = entry
-        board.un_move(move)
-        return value
-
-    def minimax(self, board, alpha, beta, depth, color) -> (int, int):
         possible_moves = board.get_valid_moves()
 
         for move in possible_moves:
@@ -261,35 +187,124 @@ class AIPlayerComplex(Player):
                 return None, 0  # Game is a draw
 
         if color == 1:
-            value = -math.inf
-            best_move = 0  # Temp value THIS COULD BE A PROBLEM LATER
-            for move in possible_moves:
-                board.make_move(move)
+            return self.max_player(board, alpha, beta, depth)
+
+        else:
+            return self.min_player(board, alpha, beta, depth)
+
+    def min_player(self, board: Board, alpha: int, beta: int, depth: int) -> (int, int):
+        """This function uses the minimax algorithm with depth 'depth', to determine the move that
+        results in the best position for the minimising player. It uses alpha-beta pruning
+        and a transposition table to help cut down on running time. It eventually returns the best
+        move and the evaluation it gives of the board after it is played.
+
+        Preconditions:
+            - depth >= 0
+        """
+        base_beta = beta
+        value = math.inf
+        best_move = 0
+        possible_moves = board.get_valid_moves()
+        for move in possible_moves:
+            board.make_move(move)
+
+            if board.hash in self._transposition_table and self._transposition_table[board.hash][2] >= depth:
+                entry = self._transposition_table[board.hash]
+                if entry[1] == 'exact':
+                    score = entry[0]
+                    if score < value:
+                        value = score
+                        best_move = move
+                elif entry[1] == 'low':
+                    alpha = max(alpha, entry[0])
+                elif entry[1] == 'high':
+                    beta = min(beta, entry[0])
+            else:
+                score = self.minimax(board, alpha, beta, depth - 1, 1)[1]
+                if score < value:
+                    value = score
+                    best_move = move
+            beta = min(value, beta)
+            if alpha >= beta:
+                if value <= alpha:
+                    entry = (value, 'high', depth)
+                elif value >= base_beta:
+                    entry = (value, 'low', depth)
+                else:
+                    entry = (value, 'exact', depth)
+                self._transposition_table[board.hash] = entry
+                board.un_move(move)
+                return move, value
+            else:
+                board.un_move(move)
+
+        board.make_move(best_move)
+        hash_value = board.hash
+        board.un_move(best_move)
+
+        if value <= alpha:
+            entry = (value, 'high', depth)
+        elif value >= base_beta:
+            entry = (value, 'low', depth)
+        else:
+            entry = (value, 'exact', depth)
+        self._transposition_table[hash_value] = entry
+        return best_move, value
+
+    def max_player(self, board: Board, alpha: int, beta: int, depth: int) -> (int, int):
+        """This function uses the minimax algorithm with depth 'depth', to determine the move that
+        results in the best position for the maximising player. It uses alpha-beta pruning
+        and a transposition table to help cut down on running time. It eventually returns the best
+        move and the evaluation it gives of the board after it is played.
+
+        Preconditions:
+            - depth >= 0
+        """
+        base_alpha = alpha
+        value = -math.inf
+        best_move = 0
+        possible_moves = board.get_valid_moves()
+        for move in possible_moves:
+            board.make_move(move)
+
+            if board.hash in self._transposition_table and self._transposition_table[board.hash][2] >= depth:
+                entry = self._transposition_table[board.hash]
+                if entry[1] == 'exact':
+                    score = entry[0]
+                    if score > value:
+                        value = score
+                        best_move = move
+                elif entry[1] == 'low':
+                    alpha = max(alpha, entry[0])
+                elif entry[1] == 'high':
+                    beta = min(beta, entry[0])
+            else:
                 score = self.minimax(board, alpha, beta, depth - 1, -1)[1]
                 if score > value:
                     value = score
                     best_move = move
-                alpha = max(value, alpha)
-                if alpha >= beta:
-                    board.un_move(move)
-                    return best_move, value
+            alpha = max(value, alpha)
+            if alpha >= beta:
+                if value <= base_alpha:
+                    entry = (value, 'high', depth)
+                elif value >= beta:
+                    entry = (value, 'low', depth)
                 else:
-                    board.un_move(move)
-            return best_move, value
+                    entry = (value, 'exact', depth)
+                self._transposition_table[board.hash] = entry
+                board.un_move(move)
+                return best_move, value
+            else:
+                board.un_move(move)
 
+        board.make_move(best_move)
+        hash_value = board.hash
+        board.un_move(best_move)
+        if value <= base_alpha:
+            entry = (value, 'high', depth)
+        elif value >= beta:
+            entry = (value, 'low', depth)
         else:
-            value = math.inf
-            best_move = 0
-            for move in possible_moves:
-                board.make_move(move)
-                score = self.minimax(board, alpha, beta, depth-1, 1)[1]
-                if score < value:
-                    value = score
-                    best_move = move
-                beta = min(value, beta)
-                if alpha >= beta:
-                    board.un_move(move)
-                    return move, value
-                else:
-                    board.un_move(move)
-            return best_move, value
+            entry = (value, 'exact', depth)
+        self._transposition_table[hash_value] = entry
+        return best_move, value
