@@ -20,16 +20,45 @@ from scipy.signal import convolve2d
 from typing import Optional
 import csv
 
-GAME_BOARD = [[0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0]]
-
 
 class Board:
-    """A class representing a Connect 4 board"""
+    """A class representing a Connect 4 board. This class keeps track of the position of all
+    the pieces as well as what moves are valid, whose turn it is, and many other things.
+
+    Representation Invariants:
+        - all({move in {0, 1, 2, 3, 4, 5, 6} for move in self._valid_moves})
+    """
+    # Public Instance Attributes:
+    #   - board_array: this is a numpy 2d array that stores the board as a 6 x 7 grid of 0's, 1's,
+    #     and -1's. A 0 is a blank space, a 1 is a red piece, and a -1 is a yellow piece.
+    #   - move_number: this is the number of moves that has been played so far/
+    #   - hash: this is a hash for the board produced via the Zobrist hashing algorithm. A board
+    #     that has the pieces in the same position will always have the same hash, regardless of
+    #     what moves were made to get there. This is used as a key in a transposition table. More
+    #     info on this can be found in opening_book_gen.py
+    # Private Instance Attributes:
+    #   - _valid_moves: this is a list of the moves that can be made in the boards current state. A
+    #     'move' is one of the seven columns, numbered 0-6 inclusively. If a column is full, it is
+    #      no longer available and so it will not be present in this list
+    #   - _valid_move_order: this is a dict that maps columns to their original indices in
+    #      self._valid_more_order. This order is very important for optimising alpha-beta pruning.
+    #   - _column_to_row: this is dict that maps a column to what row in the array a piece placed in
+    #     that column in needs to be placed.
+    #   - _is_red_active: this is a boolean that is True when it is red's turn and False when it is
+    #     yellow's turn.
+    #   - _win_state: this is 1 when the board is in a state where 4 has won, -1 if yellow has won,
+    #     0 if it is draw, and None otherwise.
+    #   - _detection_kernels_red: this is a list of numpy arrays where each numpy array encodes
+    #     one of the four possible patterns you can create to win a game of connect 4. This list is
+    #     for red so all the elements are 1.
+    #   - _detection_kernels_yellow: The same as above but with every element being a -1 as it is
+    #     for yellow.
+    #   - _red_hash_keys: This is a 2d numpy array that, for each possible location of a piece on
+    #     board, a 64 bit number is stored. This is used to calculate a hash for the board using
+    #     Zobrist's hashing algorithm. This one contains the keys for all the possible places red
+    #     pieces can go. See opening_book_gen.py for more information.
+    #   - _yellow_hash_keys: Same as above but for the yellow pieces.
+
     board_array: np.array
     move_number: int
     hash: int
@@ -43,11 +72,26 @@ class Board:
     _detection_kernels_red: list[np.array]
     _detection_kernels_yellow: list[np.array]
 
-    def __init__(self, python_board: list[list[int]] = None, red_active: bool = True):
+    def __init__(self, python_board: list[list[int]] = None, red_active: bool = True) -> None:
+        """Creates a new instance of the Board class. By default, the board is initialised to a
+        state of all zeros, meaning the board is blank and no moves has been played yet. However,
+        this can be changed if you provide a argument 'python_board'
+
+        Preconditions:
+            - all({n in {-1, 0, 1} for n in row for row in python_board})
+        """
+
+        game_board = [[0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0]]
+
         if python_board is not None:
             self.board_array = np.array(python_board)
         else:
-            self.board_array = np.array(GAME_BOARD)
+            self.board_array = np.array(game_board)
 
         self.move_number = 0
 
@@ -75,14 +119,14 @@ class Board:
         with open('data/Zobrist_Hash_Keys/Zobrist_red_key.csv') as file:
             reader = csv.reader(file)
             for row in reader:
-                red_hash_keys.append(row)
+                red_hash_keys.append([int(r) for r in row])
         self._red_hash_keys = np.array(red_hash_keys)
 
         yellow_hash_keys = []
         with open('data/Zobrist_Hash_Keys/Zobrist_yellow_key.csv') as file:
             reader = csv.reader(file)
             for row in reader:
-                yellow_hash_keys.append(row)
+                yellow_hash_keys.append([int(r) for r in row])
         self._yellow_hash_keys = np.array(yellow_hash_keys)
 
         self.hash = 0
@@ -140,7 +184,7 @@ class Board:
 
     def _update_board(self, move: int) -> None:
         """Update board by the new move.
-        Precondition:
+        Preconditions:
             - move in self._valid_moves
         """
         row = self._column_to_row[move]  # Find what row to place the disk in
