@@ -88,6 +88,9 @@ class VisualizedConnect4:
 
         # Setting window size and initializing canvas
         self._window = window
+        self._window.lift()
+        self._window.attributes("-topmost", True)
+        self._window.focus_force()
         self._window.geometry('700x700')
         self._canvas = tkinter.Canvas(self._window, width=700, height=700)
         self._canvas.pack()
