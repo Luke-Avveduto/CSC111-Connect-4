@@ -14,6 +14,7 @@ Copyright and Usage Information
 
 This file is Copyright (c) 2021 Brian Cho and Luke Avveduto
 """
+from typing import Optional
 import random
 from board import Board
 import opening_book_gen
@@ -102,7 +103,7 @@ class AIPlayerComplex(Player):
     _depth: int
     _transposition_table: dict[int:(int, str, int)]
 
-    def __init__(self, depth: int = 6, opening_book: str = 'data/opening_books/opening_book.csv') -> None:
+    def __init__(self, depth: int = 6, opening_book: Optional[str] = None) -> None:
         """Creates a new instance of the AIPlayerComplex class. Reads in the values in it's opening
         book. If an opening book is given, it will be loaded into it's transposition table.
 
@@ -112,7 +113,14 @@ class AIPlayerComplex(Player):
         """
         self.is_human = False
         self._depth = depth
+<<<<<<< Updated upstream
         self._transposition_table = {}
+=======
+        if opening_book is not None:
+            self._transposition_table = opening_book_gen.load_opening_book(opening_book)
+        else:
+            self._transposition_table = {}
+>>>>>>> Stashed changes
 
     def make_move(self, board: Board) -> int:
         """Returns a move that can be played in the game represented by the 'board' argument.
