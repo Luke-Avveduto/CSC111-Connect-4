@@ -4,7 +4,7 @@ from decision_tree import DecisionTree, write_to_file, build_from_file
 import time
 
 
-def run_game(red: Player, yellow: Player, text: bool = False) -> (list[int], bool):
+def run_game(red: Player, yellow: Player) -> list[int]:
     """Run a Connect 4 game between the two players"""
     game = Connect4Game()
 
@@ -12,32 +12,15 @@ def run_game(red: Player, yellow: Player, text: bool = False) -> (list[int], boo
     while game.get_winner() is None:
         board = game.get_game_board()
 
-        if text:
-            for r in range(len(board) - 1, -1, -1):
-                print(*board[r])
-
-            print('The valid moves are:', end=' ' )
-            print(*game.get_valid_moves(), sep=', ')
-
-        new_move = current_player.make_move(game)
+        new_move = current_player.make_move(board)
         game.make_move(new_move)
 
         if current_player is red:
             current_player = yellow
-
         else:
             current_player = red
-        current_player.receive_move(new_move)
 
-    if text:
-        if game.get_winner() == 1:
-            print('RED WINS')
-        else:
-            print('YELLOW WINS')
-
-    # for move in game.get_move_sequence():
-    #     print(move, end=' ')
-    return game.get_move_sequence(), game.get_winner() == 1
+    return game.get_move_sequence()
 
 
 def train(learning_curve: list[float], output_file: str = 'data/saved_trees/AIBasic.csv') -> None:

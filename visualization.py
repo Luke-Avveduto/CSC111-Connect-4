@@ -22,6 +22,7 @@ import networkx as nx
 import time
 import matplotlib.pyplot as plt
 import random
+from connect4 import run_game
 
 class Game:
     """
@@ -63,7 +64,7 @@ class Game:
     is_replay: bool
 
     def __init__(self, window, red: Player, yellow: Player,
-                 board: list[list[int]] = None, no_human: bool = False):
+                 board: list[list[int]] = None, no_buttons: bool = None):
         """Initialize a new visualized connect 4 game starting at the board state provided by board
 
         If board is None, the game starts with an empty board.
@@ -84,6 +85,13 @@ class Game:
         # self._exit_flag and self._is_replay are both False by default
         self._exit_flag = False
         self.is_replay = False
+
+        if no_buttons is None:
+            no_human = not red.is_human and not yellow.is_human
+        else:
+            no_human = no_buttons
+
+        self._window.protocol('WM_DELETE_WINDOW', self.quit)
 
         # If a human is playing the game, create quit and replay buttons
         if not no_human:
@@ -119,9 +127,16 @@ class Game:
             # otherwise, call the make_move function on the respective player
             # print(self._board.evaluate_score())
             if current_player.is_human:
+                text = self._canvas.create_text(100, 20, font='Times 20 italic bold',
+                                               text="Human's Turn")
+                self._canvas.update()
                 move = self._check_input()
             else:
+                text = self._canvas.create_text(100, 20, font='Times 20 italic bold',
+                                         text="AI is thinking")
+                self._canvas.update()
                 move = current_player.make_move(self._game.get_game_board())
+                self._canvas.delete(text)
 
             if move is None:
                 break
@@ -134,6 +149,8 @@ class Game:
                 else:
                     move = current_player.make_move(self._game.get_game_board())
 
+            self._canvas.delete(text)
+
             if not self._exit_flag:
                 self._game.make_move(move)
 
@@ -144,12 +161,10 @@ class Game:
 
             if not self._exit_flag:
                 self._update_board()
-
-            if self._exit_flag:
+                self._window.update()
+                self._canvas.update()
+            else:
                 break
-
-            self._window.update()
-            self._canvas.update()
 
             if no_human:
                 time.sleep(.1)
@@ -165,12 +180,17 @@ class Game:
             self._canvas.create_text(100, 20, font='Times 20 italic bold',
                                      text="Yellow Wins")
             self._canvas.update()
+        elif self._game.get_winner() == 0:
+            self._canvas.create_text(100, 20, font='Times 20 italic bold',
+                                     text="Tie")
+            self._canvas.update()
 
         if no_human:
             time.sleep(.8)
             self._window.destroy()
-        else:
+        elif not self._exit_flag:
             self._window.mainloop()
+
 
     def get_move_sequence(self) -> list[int]:
         return self._game.get_move_sequence()
@@ -216,11 +236,13 @@ class Game:
 
     def quit(self) -> None:
         self._exit_flag = True
+        self._window.quit()
         self._window.destroy()
 
     def replay(self) -> None:
         self._exit_flag = True
         self.is_replay = True
+        self._window.quit()
         self._window.destroy()
 
     def oncol1click(self, event) -> None:
@@ -247,10 +269,14 @@ class Game:
 
 def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> None:
 
-    prev_variant = -1
+    prev_variant = -1000
 
     for i in range(len(game_sequence)):
-        if all((game_sequence[i], i, v) not in game_tree for v in range(variant)):
+        if any((game_sequence[i], i, v) in game_tree for v in range(variant)):
+            for v in range(variant):
+                if (game_sequence[i], i, v) in game_tree:
+                    prev_variant = v
+        else:
             if i == 0:
                 game_tree.add_node((game_sequence[i], i, variant))
                 game_tree.add_edge('START', (game_sequence[i], i, variant))
@@ -260,7 +286,7 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
                             game_tree.add_node(('RED W', variant))
                             game_tree.add_edge((game_sequence[j - 1], j - 1, variant),
                                                ('RED W', variant))
-                        elif game_sequence[j] == 1:
+                        elif game_sequence[j] == -1:
                             game_tree.add_node(('YEL W', variant))
                             game_tree.add_edge((game_sequence[j - 1], j - 1, variant),
                                                ('YEL W', variant))
@@ -270,9 +296,10 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
                                                ('TIE', variant))
                     else:
                         game_tree.add_node((game_sequence[j], j, variant))
-                        game_tree.add_edge((game_sequence[j - 1], j - 1, variant), (game_sequence[j], j, variant))
+                        game_tree.add_edge((game_sequence[j - 1], j - 1, variant),
+                                           (game_sequence[j], j, variant))
                 return
-            else:
+            elif i != len(game_sequence) - 1:
                 game_tree.add_node((game_sequence[i], i, variant))
                 game_tree.add_edge((game_sequence[i - 1], i - 1, prev_variant),
                                    (game_sequence[i], i, variant))
@@ -282,7 +309,7 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
                             game_tree.add_node(('RED W', variant))
                             game_tree.add_edge((game_sequence[j - 1], j - 1, variant),
                                                ('RED W', variant))
-                        elif game_sequence[j] == 1:
+                        elif game_sequence[j] == -1:
                             game_tree.add_node(('YEL W', variant))
                             game_tree.add_edge((game_sequence[j - 1], j - 1, variant),
                                                ('YEL W', variant))
@@ -292,148 +319,139 @@ def add_game(game_tree: nx.DiGraph, root, game_sequence: list[int], variant) -> 
                                                ('TIE', variant))
                     else:
                         game_tree.add_node((game_sequence[j], j, variant))
-                        game_tree.add_edge((game_sequence[j - 1], j - 1, variant), (game_sequence[j], j, variant))
+                        game_tree.add_edge((game_sequence[j - 1], j - 1, variant),
+                                           (game_sequence[j], j, variant))
                 return
-        else:
-            for v in range(variant):
-                if (game_sequence[i], i, v) in game_tree:
-                    prev_variant = v
 
 
-def run_game(red: Player, yellow: Player):
+def run_game_visualized(red: Player, yellow: Player):
     """Runs a game of Connect 4 using a GUI"""
     window = tkinter.Tk()
     game = Game(window, red, yellow)
     while game.is_replay:
-        print('hi')
         window = tkinter.Tk()
         game = Game(window, red, yellow)
 
-def test():
-    red = RandomPlayer()
-    yellow = RandomPlayer()
-    for _ in range(10):
-        window = tkinter.Tk()
-        game = Game(window, red, yellow, no_human=True)
 
 def run_games(red: Player, yellow: Player, n:int,
               visualization: bool = False, show_stats: bool = False) -> nx.DiGraph:
     """Runs n number of games between red and yellow and returns the game tree"""
-    if red is not HumanPlayer and yellow is not HumanPlayer:
-        no_human = True
-    else:
-        no_human = False
+
+    game_tree = nx.DiGraph()
+    game_tree.add_node('START')
+    num_red_wins = 0
+    num_yellow_wins = 0
 
     if visualization:
-        game_tree = nx.DiGraph()
-        game_tree.add_node('START')
         for i in range(n):
             window = tkinter.Tk()
-            game = Game(window, red, yellow, no_human=no_human)
+            game = Game(window, red, yellow, no_buttons=True)
             game_moves = game.get_move_sequence()
+            if game_moves[len(game_moves) - 1] == 1:
+                num_red_wins += 1
+            elif game_moves[len(game_moves) - 1] == -1:
+                num_yellow_wins += 1
             add_game(game_tree, 'START', game_moves, i)
-        labels = {}
-        colour_map = []
-        for node in game_tree.nodes():
-            if isinstance(node[1], int) and node[1] % 2 == 0:
-                colour_map.append('red')
-            elif isinstance(node[1], int) and node[1] % 2 != 0:
-                colour_map.append('yellow')
-            else:
-                colour_map.append('green')
-
-            if node[0] == 'RED W':
-                labels[node] = 'RED W'
-                colour_map.pop()
-                colour_map.append('red')
-            elif node[0] == 'YEL W:':
-                labels[node] = 'YEL W'
-                colour_map.pop()
-                colour_map.append('yellow')
-            elif node[0] == 'TIE':
-                labels[node] = 'TIE'
-                colour_map.pop()
-                colour_map.append('green')
-            else:
-                labels[node] = node[0]
-
-        plt.title('Game Results')
-        pos = hierarchy_pos(game_tree, 'START', width=0.5, vert_gap=100)
-        nx.draw(game_tree, node_color=colour_map, pos=pos, labels=labels, arrows=True)
-        plt.show()
-        return game_tree
-
-
-
-def hierarchy_pos(G, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5):
-    '''
-    From Joel's answer at https://stackoverflow.com/a/29597209/2966723.
-    Licensed under Creative Commons Attribution-Share Alike
-
-    If the graph is a tree this will return the positions to plot this in a
-    hierarchical layout.
-
-    G: the graph (must be a tree)
-
-    root: the root node of current branch
-    - if the tree is directed and this is not given,
-      the root will be found and used
-    - if the tree is directed and this is given, then
-      the positions will be just for the descendants of this node.
-    - if the tree is undirected and not given,
-      then a random choice will be used.
-
-    width: horizontal space allocated for this branch - avoids overlap with other branches
-
-    vert_gap: gap between levels of hierarchy
-
-    vert_loc: vertical location of root
-
-    xcenter: horizontal location of root
-    '''
-    if not nx.is_tree(G):
-        raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
-
-    if root is None:
-        if isinstance(G, nx.DiGraph):
-            root = next(
-                iter(nx.topological_sort(G)))  # allows back compatibility with nx version 1.11
+    else:
+        if red.is_human or yellow.is_human:
+            text = True
         else:
-            root = random.choice(list(G.nodes))
+            text = False
 
-    def _hierarchy_pos(G, root, width=1., vert_gap=0.2, vert_loc=0.0, xcenter=0.5, pos=None,
-                       parent=None):
-        '''
-        see hierarchy_pos docstring for most arguments
+        for i in range(n):
+            game_moves = run_game(red, yellow, text=text)
+            if game_moves[len(game_moves) - 1] == 1:
+                num_red_wins += 1
+            elif game_moves[len(game_moves) - 1] == -1:
+                num_yellow_wins += 1
+            add_game(game_tree, 'START', game_moves, i)
 
-        pos: a dict saying where all nodes go if they have been assigned
-        parent: parent of this branch. - only affects it if non-directed
-
-        '''
-
-        if pos is None:
-            pos = {root: (xcenter, vert_loc)}
+    labels = {}
+    colour_map = []
+    for node in game_tree.nodes():
+        if node[0] == 'RED W':
+            colour_map.append('red')
+        elif node[0] == 'YEL W':
+            colour_map.append('yellow')
+        elif node[0] == 'TIE':
+            colour_map.append('green')
+        elif isinstance(node[1], int) and node[1] % 2 == 0:
+            colour_map.append('red')
+        elif isinstance(node[1], int) and node[1] % 2 != 0:
+            colour_map.append('yellow')
         else:
-            pos[root] = (xcenter, vert_loc)
-        children = list(G.neighbors(root))
-        if not isinstance(G, nx.DiGraph) and parent is not None:
-            children.remove(parent)
-        if len(children) != 0:
-            dx = width / len(children)
-            nextx = xcenter - width / 2 - dx / 2
-            for child in children:
-                nextx += dx
-                pos = _hierarchy_pos(G, child, width=dx, vert_gap=vert_gap,
-                                     vert_loc=vert_loc - vert_gap, xcenter=nextx,
-                                     pos=pos, parent=root)
-        return pos
+            colour_map.append('green')
 
-    return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
+        if node[0] == 'RED W':
+            labels[node] = 'RED W'
+            colour_map.pop()
+            colour_map.append('red')
+        elif node[0] == 'YEL W:':
+            labels[node] = 'YEL W'
+            colour_map.pop()
+            colour_map.append('yellow')
+        elif node[0] == 'TIE':
+            labels[node] = 'TIE'
+            colour_map.pop()
+            colour_map.append('green')
+        else:
+            labels[node] = node[0]
+
+    plt.title('Game Results')
+    pos = tree_pos(game_tree, 'START', width=1, vert_gap=0.2)
+    nx.draw(game_tree, node_color=colour_map, pos=pos, labels=labels, arrows=True)
+    plt.show()
+
+    if show_stats:
+        red_winrate = (num_red_wins / n) * 100
+        yellow_winrate = (num_yellow_wins / n) * 100
+
+        print('Number of Games: ' + str(n))
+        print('Number of Red Wins: ' + str(num_red_wins))
+        print('Number of Yellow Wins: ' + str(num_yellow_wins))
+        print('Number of Ties: ' + str(n - num_red_wins - num_yellow_wins))
+        print('Red Win Rate: ' + str(red_winrate))
+        print('Yellow Win Rate: ' + str(yellow_winrate))
+
+    return game_tree
 
 
-TEST = [[0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, -1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, -1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, -1, 0, 0, 0]]
+def tree_pos(G: nx.DiGraph, root, width: float = 1.0, vert_gap: float = 0.2,
+                   vert_loc: float = 0, xcentre: float = 0.5) -> dict:
+    """A function that calculates the position of each node in the tree G when it is visualized.
+    Returns the position of each node as a dictionary.
+
+    Instance Attributes:
+        - G: the tree to be visualized
+        - root: the root value of the tree
+        - width: horizontal space occupied by the tree
+        - vert_gap: the gap between each hierarchy
+        - vert_loc: the vertical location of the root of the tree
+        - xcentre: the horizontal location of the root of the tree
+
+    Preconditions:
+        - nx.is_tree(G)
+        - root is an existing value in the tree
+    """
+    return _tree_pos(G, root, width, vert_gap, vert_loc, xcentre, None)
+
+
+def _tree_pos(G, root, width, vert_gap, vert_loc, xcentre, pos,) -> dict:
+    """Recursive helper function for tree_pos that returns a dictionary of node positions"""
+
+    if pos is None:
+        pos = {root: (xcentre, vert_loc)}
+    else:
+        pos[root] = (xcentre, vert_loc)
+
+    subtrees = list(G.neighbors(root))
+
+    if len(subtrees) != 0:
+        dx = width / len(subtrees)
+        next_pos = xcentre - width / 2 - dx / 2
+        for subtree in subtrees:
+            next_pos += dx
+            pos = _tree_pos(G, subtree, dx, vert_gap, vert_loc - vert_gap, next_pos, pos)
+
+    return pos
+
